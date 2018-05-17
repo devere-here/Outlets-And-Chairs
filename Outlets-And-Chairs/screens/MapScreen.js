@@ -5,20 +5,12 @@ import Spacer from '../components/Spacer'
 
 export default class Map extends React.Component {
   render() {
+    console.log('mapscreen')
     return (
         <View>
-            <Spacer size={25} />
             <Text>Map Screen</Text>
         </View>
     )
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-})
