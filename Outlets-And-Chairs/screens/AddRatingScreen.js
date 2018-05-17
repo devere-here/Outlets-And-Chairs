@@ -7,9 +7,11 @@ export default class AddRating extends React.Component {
   render() {
     console.log('addratingscreen')
     return (
-        <View>
-            <Text>Add Rating Screen</Text>
-        </View>
+      <Container>
+        <Content padder>
+          <H1>Add Rating</H1>
+        </Content>
+      </Container>
     )
   }
 }
