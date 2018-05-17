@@ -2,6 +2,7 @@ import React from 'react'
 import { StyleSheet, Image } from 'react-native'
 import { H1, Container, Content, Text } from 'native-base'
 import Spacer from './components/Spacer'
+import Tabs from './config/router'
 
 export default class App extends React.Component {
   render() {
@@ -19,6 +20,7 @@ export default class App extends React.Component {
             Outlets is here to make sure that does not happen again. Find all
             coffee shops near you and see which ones have the most chairs and outlets so you spend less time looking for the perfect work spot and more time actually working.
           </Text>
+          <Tabs />
         </Content>
       </Container>
     );
