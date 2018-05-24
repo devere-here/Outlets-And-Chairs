@@ -5,6 +5,8 @@ import Spacer from '../components/Spacer'
 import t from 'tcomb-form-native'
 import { FormLabel, FormInput, FormValidationMessage } from 'react-native-elements'
 
+//"~0.55.2",
+
 
 const Cafe = t.struct({
   rating: t.Number,

@@ -4,7 +4,14 @@ import React from 'react'
 import { StyleSheet, Image, Text, View } from 'react-native'
 import { H1, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
+import YelpApi from 'v3-yelp-api'
 
+const credentials = {
+  appId:"0sWpNh2u9yn5-JKBZGNncA",
+  app: "U9tQpj-j-kqELOojcfUWqfMe1Sh6m_M49dwvVu37YdhTBJ_seMzvKjs4D2lmXfO_qSDpedMkdwkhPXm3affy3OV-tbycYAB5pTlNXRj-BUknsK0Q44KFuDtq19gFW3Yx"
+}
+
+const yelp = new YelpApi(credentials)
 
 export default class Map extends React.Component {
   constructor() {
@@ -43,8 +50,35 @@ export default class Map extends React.Component {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       }
-      this.setState({ region: newRegion });
+      this.setState({ region: newRegion })
+
+      let params = { phone: '+442073722882' }
+
+      console.log('about to phone search')
+ 
+      yelp.phoneSearch(params)
+        .then(data => {
+          console.log('the goods', data)
+          return data
+        })
+        .catch(err => {
+          console.log('err is', err)
+          return err
+        })
     })
+
+    //  const client = yelp.client(apiKey)
+    //   console.log('about to yelp')
+
+    //   client.search(searchRequest).then(response => {
+    //     console.log('in the yelp promise')
+    //     const firstResult = response.jsonBody.businesses[0]
+    //     const prettyJson = JSON.stringify(firstResult, null, 4)
+    //     console.log('prettyJSON', prettyJson)
+    //   }).catch(e => {
+    //     console.log(e)
+    //   })
+
   }
 
 

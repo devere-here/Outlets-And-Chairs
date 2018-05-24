@@ -1,13 +1,32 @@
 import React from 'react'
-import { StyleSheet, Image, View } from 'react-native'
+import { StyleSheet, Image, View, Button } from 'react-native'
 import { H1, Container, Content, Text } from 'native-base'
 import Spacer from './components/Spacer'
 import Tabs from './config/router'
+import nodejs from 'nodejs-mobile-react-native'
+
 
 export default class App extends React.Component {
+
+  // componentWillMount()
+  // {
+  //   nodejs.start('main.js')
+  //   nodejs.channel.addListener(
+  //     'message',
+  //     (msg) => {
+  //       alert('From node: ' + msg)
+  //     },
+  //     this
+  //   )
+  // }
+
   render() {
     return (
       <View style={styles.container}>
+        <Button
+          title="Message Node"
+          onPress={() => nodejs.channel.send('A message!')}
+        />
         <Tabs />
       {/*<Container style={styles.container} >
         <Content padder>
@@ -22,15 +41,15 @@ export default class App extends React.Component {
             Outlets is here to make sure that does not happen again. Find all
             coffee shops near you and see which ones have the most chairs and outlets so you spend less time looking for the perfect work spot and more time actually working.
     </Text>*/}
-       
+
           {/*
         </Content>
       </Container>
           */}
 
-        </View>
+      </View>
 
-    );
+    )
   }
 }
 
