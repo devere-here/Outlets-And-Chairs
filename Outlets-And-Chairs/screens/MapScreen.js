@@ -8,7 +8,7 @@ import Spacer from '../components/Spacer'
 
 export default class Map extends React.Component {
   constructor() {
-    super();
+    super()
     this.state = {
       region: {
         latitude: 37.78825,
@@ -16,7 +16,12 @@ export default class Map extends React.Component {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       },
-    };
+      location: {
+        latitude: 37.78825,
+        longitude: -122.4324,
+      }
+      
+    }
     this.onRegionChange = this.onRegionChange.bind(this)
     this.openSearchModal = this.openSearchModal.bind(this)
   }
@@ -24,9 +29,9 @@ export default class Map extends React.Component {
   openSearchModal() {
     RNGooglePlaces.openAutocompleteModal()
       .then((place) => {
-        console.log(place);
+        console.log(place)
       })
-      .catch(error => console.log(error.message)); // error is a Javascript Error object
+      .catch(error => console.log(error.message))  // error is a Javascript Error object
   }
 
 
@@ -37,15 +42,15 @@ export default class Map extends React.Component {
         longitude: position.coords.longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      };
+      }
       this.setState({ region: newRegion });
-    });
+    })
   }
 
 
   onRegionChange(region) {
-    console.log('in onRegionChange');
-    this.setState({ region });
+    console.log('in onRegionChange')
+    this.setState({ region })
   }
 
 
@@ -54,17 +59,19 @@ export default class Map extends React.Component {
 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5FCFF' }} >
         <View style={{height: '5%', backgroundColor: 'white'}}><Text>Press Here to Search</Text></View>
-          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude); })}
+          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude) })}
           <MapView
+            showsUserLocation = {true}
+            followsUserLocation = {true}
             region={this.state.region}
-            onRegionChange={this.onRegionChange}
-            style={{
-  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
-  }}
-          />
+            zoomEnabled = {true}
+            mapType="satellite"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          >
+            {/*use markers to find coordinates of all nearby cafes*/}
+            <Marker pinColor="yellow" coordinate = {this.state.location} />
+          </MapView>
       </View>
-    );
+    )
   }
 }
-
-
