@@ -1,15 +1,66 @@
 import React from 'react'
 import { StyleSheet, Image, View } from 'react-native'
-import { H1, Container, Content, Text } from 'native-base'
+import { H1, Container, Content, Text, Button } from 'native-base'
 import Spacer from './components/Spacer'
 import Tabs from './config/router'
+import nodejs from 'nodejs-mobile-react-native'
+import axios from 'axios'
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+})
 
 export default class App extends React.Component {
+
+  componentWillMount()
+  {
+    // console.log('nodejs start')
+    // console.log('nodejs is', nodejs.start)
+    // nodejs.start('main.js')
+    // console.log('after nodejs start')
+
+    // nodejs.channel.addListener(
+    //   'message',
+    //   (msg) => {
+    //     console.log('From node: ' + msg)
+    //   },
+    //   this
+    // )
+  }
+
+  componentDidMount(){
+    console.log('in componentDidMount')
+    axios.get('https://api.yelp.com/v3/businesses/north-india-restaurant-san-francisco/reviews')
+    .then(data => {
+      console.log('the data', data)
+      return data.json
+    })
+    .then(stuff => console.log('the stuff', stuff))
+
+    console.log('leaving componentDidMount')
+
+    
+  }
+
   render() {
+
     return (
       <View style={styles.container}>
         <Tabs />
-      {/*<Container style={styles.container} >
+        <Button title="Message Node"
+          onPress={() => nodejs.channel.send('A message!')}
+        />
+      </View>
+
+    )
+  }
+}
+
+
+
+ {/*<Container style={styles.container} >
         <Content padder>
           <Spacer size={25} />
           <H1>Outlets and Chairs</H1>
@@ -28,14 +79,3 @@ export default class App extends React.Component {
       </Container>
           */}
 
-        </View>
-
-    );
-  }
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-})
