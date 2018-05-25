@@ -17,7 +17,7 @@ export default class Map extends React.Component {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       },
-      cafeLocationsState: []
+      cafeInfo: []
     };
     this.onRegionChange = this.onRegionChange.bind(this)
     this.openSearchModal = this.openSearchModal.bind(this)
@@ -37,7 +37,7 @@ export default class Map extends React.Component {
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude,
           longitude = position.coords.longitude,
-          cafeLocations = []
+          cafeInfo = []
       const newRegion = {
         latitude: latitude,
         longitude: longitude,
@@ -53,11 +53,17 @@ export default class Map extends React.Component {
         .then(res => res.json())
         .then(res => {
           res.results.forEach(ele => {
-            console.log('the cafe is this lat is', ele.geometry.location.lat, 'long is ', ele.geometry.location.lng)
-            cafeLocations.push({lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
+            //console.log('cafe is', 'ele.name', ele.name, 'ele.opening_hours', ele.opening_hours.weekday_text[1], 'ele.place_id', ele.place_id, 'ele.vicinity', ele.vicinity)
+            //console.log('the cafe is this lat is', ele.geometry.location.lat, 'long is ', ele.geometry.location.lng)
+            if (ele.opening_hours){
+              cafeInfo.push({name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
+            } else {
+              console.log('you just lost a cafe make sure you dont lose too many')
+            }
+            
           })
 
-        this.setState({ region: newRegion, cafeLocationsState: cafeLocations})
+        this.setState({ region: newRegion, cafeInfo: cafeInfo})
 
           
         })
@@ -79,7 +85,7 @@ export default class Map extends React.Component {
 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5FCFF' }} >
         <View style={{height: '5%', backgroundColor: 'white'}}><Text>Press Here to Search</Text></View>
-          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude); })}
+          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude) })}
           <MapView
             region={this.state.region}
             onRegionChange={this.onRegionChange}
@@ -88,11 +94,15 @@ export default class Map extends React.Component {
   }}
           >
           {
-            this.state.cafeLocationsState.length <= 0
+            this.state.cafeInfo.length <= 0
               ? null
-              : this.state.cafeLocationsState.map((ele) => {
+              : this.state.cafeInfo.map((ele) => {
+                //!ele.isOpen ? console.log('problem child', ele) : console.log('all good')
+                  //console.log('cafes hours', ele.isOpen.open_now)
+
+                  let markerColor = ele.isOpen ? 'green' : 'red'
                   return (
-                    <Marker pinColor="blue" coordinate={{ latitude: ele.lat, longitude: ele.lng }} title="foo title" description="foo description" />
+                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} title={ele.name} description={`Is currently ${ele.isOpen ? 'open' : 'closed'}. Number of Outlets: N/A \n Number of Chairs: N/A`} />
                   )
                 })
           }
