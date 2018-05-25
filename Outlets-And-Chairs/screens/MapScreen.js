@@ -4,6 +4,7 @@ import React from 'react'
 import { StyleSheet, Image, Text, View } from 'react-native'
 import { H1, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
+import { googlePlacesKey } from '../secrets'
 
 
 export default class Map extends React.Component {
@@ -31,21 +32,38 @@ export default class Map extends React.Component {
 
 
   componentDidMount() {
+    console.log('in the componentDidMOunt')
     navigator.geolocation.getCurrentPosition((position) => {
+      let latitude = position.coords.latitude,
+          longitude = position.coords.longitude
       const newRegion = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
+        latitude: latitude,
+        longitude: longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      };
-      this.setState({ region: newRegion });
-    });
+      }
+      this.setState({ region: newRegion })
+
+      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=restaurant&key=${googlePlacesKey}`
+
+      console.log('about to fetch')
+      fetch(url)
+        .then(res => {
+          return res.json()
+        })
+        .then(res => {
+          console.log('ok is it here', res)
+        })
+        .then(err => {
+          console.log('err is ', err)
+        })
+    })
   }
 
 
   onRegionChange(region) {
-    console.log('in onRegionChange');
-    this.setState({ region });
+    console.log('in onRegionChange')
+    this.setState({ region })
   }
 
 
