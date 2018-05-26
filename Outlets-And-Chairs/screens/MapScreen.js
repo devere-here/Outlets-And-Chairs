@@ -7,8 +7,8 @@ import { googlePlacesKey } from '../secrets'
 
 
 export default class Map extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props)
     this.state = {
       region: {
         latitude: 37.78825,
@@ -19,17 +19,7 @@ export default class Map extends React.Component {
       cafeInfo: []
     };
     this.onRegionChange = this.onRegionChange.bind(this)
-    this.openSearchModal = this.openSearchModal.bind(this)
   }
-
-  openSearchModal() {
-    RNGooglePlaces.openAutocompleteModal()
-      .then((place) => {
-        console.log(place);
-      })
-      .catch(error => console.log(error.message)); // error is a Javascript Error object
-  }
-
 
   componentDidMount() {
     console.log('in the componentDidMOunt')
@@ -52,8 +42,7 @@ export default class Map extends React.Component {
         .then(res => res.json())
         .then(res => {
           res.results.forEach(ele => {
-            //console.log('cafe is', 'ele.name', ele.name, 'ele.opening_hours', ele.opening_hours.weekday_text[1], 'ele.place_id', ele.place_id, 'ele.vicinity', ele.vicinity)
-            //console.log('the cafe is this lat is', ele.geometry.location.lat, 'long is ', ele.geometry.location.lng)
+       
             if (ele.opening_hours){
               cafeInfo.push({name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
             } else {
@@ -80,6 +69,7 @@ export default class Map extends React.Component {
 
 
   render() {
+    const { navigate } = this.props.navigation
     return (
 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5FCFF' }} >
@@ -87,7 +77,6 @@ export default class Map extends React.Component {
           {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude) })}
           <MapView
             region={this.state.region}
-            //onRegionChange={this.onRegionChange}
             showsUserLocation = {true}
             style={{
   position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
@@ -97,10 +86,7 @@ export default class Map extends React.Component {
             this.state.cafeInfo.length <= 0
               ? null
               : this.state.cafeInfo.map((ele) => {
-                //!ele.isOpen ? console.log('problem child', ele) : console.log('all good')
-                  //console.log('cafes hours', ele.isOpen.open_now)
-
-                  let markerColor = ele.isOpen ? 'green' : 'red'
+    
                   return (
                     <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} >
                     <Callout>
@@ -110,7 +96,7 @@ export default class Map extends React.Component {
                         <Text>Study Space Rating: 5</Text>
                         <Text>Number of Outlets: N/A</Text>
                         <Text>Number of Chairs: N/A</Text>
-                        <Button title="addReviewButton" onPress={console.log('it has been pressed')}>Add Review</Button>
+                        <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
                       </View>
                     </Callout>
                     </Marker>
@@ -130,5 +116,3 @@ export default class Map extends React.Component {
   // create a fnct that opens a new screen
   // pass name and place id to new screen
   // have submission data be entered in firestore
-
-
