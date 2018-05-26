@@ -1,8 +1,7 @@
-import RNGooglePlaces from 'react-native-google-places';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import React from 'react'
-import { StyleSheet, Image, Text, View } from 'react-native'
-import { H1, Container, Content } from 'native-base'
+import { StyleSheet, Image, Text, View, Button } from 'react-native'
+import { H3, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
 import { googlePlacesKey } from '../secrets'
 
@@ -88,7 +87,8 @@ export default class Map extends React.Component {
           {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude) })}
           <MapView
             region={this.state.region}
-            onRegionChange={this.onRegionChange}
+            //onRegionChange={this.onRegionChange}
+            showsUserLocation = {true}
             style={{
   position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
   }}
@@ -102,7 +102,18 @@ export default class Map extends React.Component {
 
                   let markerColor = ele.isOpen ? 'green' : 'red'
                   return (
-                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} title={ele.name} description={`Is currently ${ele.isOpen ? 'open' : 'closed'}. Number of Outlets: N/A \n Number of Chairs: N/A`} />
+                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} >
+                    <Callout>
+                      <View>
+                        <H3>{ele.name}</H3>
+                        <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
+                        <Text>Study Space Rating: 5</Text>
+                        <Text>Number of Outlets: N/A</Text>
+                        <Text>Number of Chairs: N/A</Text>
+                        <Button title="addReviewButton" onPress={console.log('it has been pressed')}>Add Review</Button>
+                      </View>
+                    </Callout>
+                    </Marker>
                   )
                 })
           }
@@ -112,5 +123,12 @@ export default class Map extends React.Component {
     );
   }
 }
+
+
+// on onPress I'd like to open a new screen where the user can fill out a form on the specified cafe
+// to do this i need to 
+  // create a fnct that opens a new screen
+  // pass name and place id to new screen
+  // have submission data be entered in firestore
 
 
