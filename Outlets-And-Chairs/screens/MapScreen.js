@@ -1,15 +1,17 @@
-import RNGooglePlaces from 'react-native-google-places';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import React from 'react'
-import { StyleSheet, Image, Text, View } from 'react-native'
-import { H1, Container, Content } from 'native-base'
+import { StyleSheet, Image, Text, View, Button } from 'react-native'
+import { H3, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
 import { googlePlacesKey } from '../secrets'
 
+import { db } from '../config/firebase'
+
+
 
 export default class Map extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props)
     this.state = {
       region: {
         latitude: 37.78825,
@@ -17,27 +19,18 @@ export default class Map extends React.Component {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       },
-      cafeLocationsState: []
+      cafeInfo: [],
+      bool: false
     };
     this.onRegionChange = this.onRegionChange.bind(this)
-    this.openSearchModal = this.openSearchModal.bind(this)
   }
-
-  openSearchModal() {
-    RNGooglePlaces.openAutocompleteModal()
-      .then((place) => {
-        console.log(place);
-      })
-      .catch(error => console.log(error.message)); // error is a Javascript Error object
-  }
-
 
   componentDidMount() {
     console.log('in the componentDidMOunt')
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude,
           longitude = position.coords.longitude,
-          cafeLocations = []
+          cafeInfo = []
       const newRegion = {
         latitude: latitude,
         longitude: longitude,
@@ -53,11 +46,16 @@ export default class Map extends React.Component {
         .then(res => res.json())
         .then(res => {
           res.results.forEach(ele => {
-            console.log('the cafe is this lat is', ele.geometry.location.lat, 'long is ', ele.geometry.location.lng)
-            cafeLocations.push({lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
+       
+            if (ele.opening_hours){
+              cafeInfo.push({name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
+            } else {
+              console.log('you just lost a cafe make sure you dont lose too many')
+            }
+            
           })
 
-        this.setState({ region: newRegion, cafeLocationsState: cafeLocations})
+        this.setState({ region: newRegion, cafeInfo: cafeInfo})
 
           
         })
@@ -75,24 +73,57 @@ export default class Map extends React.Component {
 
 
   render() {
+    const { navigate } = this.props.navigation
     return (
 
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5FCFF' }} >
         <View style={{height: '5%', backgroundColor: 'white'}}><Text>Press Here to Search</Text></View>
-          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude); })}
+          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude) })}
           <MapView
             region={this.state.region}
-            onRegionChange={this.onRegionChange}
+            showsUserLocation = {true}
             style={{
   position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
   }}
           >
           {
-            this.state.cafeLocationsState.length <= 0
+            this.state.cafeInfo.length <= 0
               ? null
-              : this.state.cafeLocationsState.map((ele) => {
+              : this.state.cafeInfo.map((ele) => {
+    
                   return (
-                    <Marker pinColor="blue" coordinate={{ latitude: ele.lat, longitude: ele.lng }} title="foo title" description="foo description" />
+                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} onPress={() => {
+                     console.log('in onPress')
+                     console.log('ele.id is', ele.id)
+                     db.collection(ele.id).doc('ratings').get()
+                     .then(doc => {
+                       if (doc.data()){
+                         console.log('in the if doc data is', doc.data())
+                         ele.currentOverallRating = doc.data().currentOverallRating
+                         ele.currentSeating = doc.data().currentSeating
+                         ele.currentOutletAccess = doc.data().currentOutletAccess
+                         ele.currentRestrooms = doc.data().currentRestrooms
+                       } else {
+                         console.log('in the else')
+                       }
+                       this.setState({bool: !this.state.bool})
+
+                     })
+                     
+
+                    }} >
+                    <Callout>
+                      <View>
+                        {console.log('in the view ele is', ele)}
+                        <H3>{ele.name}</H3>
+                        <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
+                        <Text>Study Space Rating: {ele.currentOverallRating || 'N/A'}</Text>
+                        <Text>Number of Outlets: {ele.currentOutletAccess || 'N/A'}</Text>
+                        <Text>Number of Chairs: {ele.currentSeating || 'N/A'}</Text>
+                        <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
+                      </View>
+                    </Callout>
+                    </Marker>
                   )
                 })
           }
@@ -104,3 +135,8 @@ export default class Map extends React.Component {
 }
 
 
+// on onPress I'd like to open a new screen where the user can fill out a form on the specified cafe
+// to do this i need to 
+  // create a fnct that opens a new screen
+  // pass name and place id to new screen
+  // have submission data be entered in firestore
