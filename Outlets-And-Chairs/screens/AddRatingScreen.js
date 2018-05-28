@@ -4,6 +4,7 @@ import { H2, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
 import t from 'tcomb-form-native'
 import { FormLabel, FormInput, FormValidationMessage, Slider, CheckBox, Button } from 'react-native-elements'
+import { db } from '../config/firebase'
 
 
 const Cafe = t.struct({
@@ -78,9 +79,11 @@ export default class AddRating extends React.Component {
           />
           <FormInput onChangeText={this.someFunction} />
           <Button title="Add Rating" onPress={() => {
-            // check that I have place id
+            // check that I have place id --> this.props.navigation.state.params.id
             // bring state to firestore
             // redirect / show a card / empty rating fields
+            console.log('db is', db)
+            db.collection('blah').doc(this.props.navigation.state.params.id).set(this.state)
           }}/>
         </Content>
       </Container>
