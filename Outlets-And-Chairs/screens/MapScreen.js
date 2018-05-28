@@ -5,6 +5,9 @@ import { H3, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
 import { googlePlacesKey } from '../secrets'
 
+import { db } from '../config/firebase'
+
+
 
 export default class Map extends React.Component {
   constructor(props) {
@@ -16,7 +19,8 @@ export default class Map extends React.Component {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       },
-      cafeInfo: []
+      cafeInfo: [],
+      bool: false
     };
     this.onRegionChange = this.onRegionChange.bind(this)
   }
@@ -88,14 +92,34 @@ export default class Map extends React.Component {
               : this.state.cafeInfo.map((ele) => {
     
                   return (
-                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} >
+                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} onPress={() => {
+                     console.log('in onPress')
+                     console.log('ele.id is', ele.id)
+                     db.collection(ele.id).doc('ratings').get()
+                     .then(doc => {
+                       if (doc.data()){
+                         console.log('in the if doc data is', doc.data())
+                         ele.currentOverallRating = doc.data().currentOverallRating
+                         ele.currentSeating = doc.data().currentSeating
+                         ele.currentOutletAccess = doc.data().currentOutletAccess
+                         ele.currentRestrooms = doc.data().currentRestrooms
+                       } else {
+                         console.log('in the else')
+                       }
+                       this.setState({bool: !this.state.bool})
+
+                     })
+                     
+
+                    }} >
                     <Callout>
                       <View>
+                        {console.log('in the view ele is', ele)}
                         <H3>{ele.name}</H3>
                         <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
-                        <Text>Study Space Rating: 5</Text>
-                        <Text>Number of Outlets: N/A</Text>
-                        <Text>Number of Chairs: N/A</Text>
+                        <Text>Study Space Rating: {ele.currentOverallRating || 'N/A'}</Text>
+                        <Text>Number of Outlets: {ele.currentOutletAccess || 'N/A'}</Text>
+                        <Text>Number of Chairs: {ele.currentSeating || 'N/A'}</Text>
                         <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
                       </View>
                     </Callout>
