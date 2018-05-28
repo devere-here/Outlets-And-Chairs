@@ -3,16 +3,27 @@ import { StyleSheet, Image, Text, View, TextInput } from 'react-native'
 import { H2, Container, Content } from 'native-base'
 import Spacer from '../components/Spacer'
 import t from 'tcomb-form-native'
-import { FormLabel, FormInput, FormValidationMessage, Slider, CheckBox, Button } from 'react-native-elements'
+import { FormLabel, FormInput, Slider, Button } from 'react-native-elements'
 import { db } from '../config/firebase'
 
+// right now this is a monstrosity
 
-const Cafe = t.struct({
-  rating: t.Number,
-  outlets: t.Number,
-  chairs: t.Number,
-  comments: t.Boolean
-})
+const calculateNewRatings = (state) => {
+  let newState = {}
+
+  newState.currentOverallRating = (state.currentOverallRating * state.currentReviewNumber + state.overallRating) / (state.currentReviewNumber + 1)
+
+  newState.currentSeating = (state.currentSeating * state.currentReviewNumber + state.seating) / (state.currentReviewNumber + 1)
+
+  newState.currentOutletAccess = (state.currentOutletAccess * state.currentReviewNumber + state.outletAccess) / (state.currentReviewNumber + 1)
+
+  newState.currentRestrooms = (state.currentRestrooms * state.currentReviewNumber + state.restrooms) / (state.currentReviewNumber + 1)
+
+  newState.currentReviewNumber = state.currentReviewNumber + 1
+
+  return newState
+
+}
 
 export default class AddRating extends React.Component {
   constructor(props){
@@ -21,20 +32,42 @@ export default class AddRating extends React.Component {
       overallRating: 0,
       seating: 0,
       outletAccess: 0,
-      restrooms: false,
-      review: ''
+      restrooms: 0,
+      review: '',
+      currentReviewNumber: 0,
+      currentOverallRating: 0,
+      currentSeating: 0,
+      currentOutletAccess: 0,
+      currentRestrooms: 0
     }
-    this.someFunction = this.someFunction.bind(this)
   }
 
-  someFunction(evt){
+  componentDidMount(){
+    db.collection(this.props.navigation.state.params.id).doc('ratings').get()
+    .then(doc => {
+      console.log('iin compdidmount doc is', doc)
+      if (doc.data()){
+        console.log('in compDidMount if')
+        let data = doc.data()
+    
+        this.setState({currentReviewNumber: data.currentReviewNumber,
+          currentOverallRating: data.currentOverallRating,
+          currentSeating: data.currentSeating,
+          currentOutletAccess: data.currentOutletAccess,
+          currentRestrooms: data.currentRestrooms
+        })
+      } else {
+        console.log('in compDidMount else')
+      }
 
-    console.log('target is', evt.target)
-
+    })
   }
+
+  
 
   render() {
     console.log('props are', this.props.navigation.state)
+    console.log('state is', this.state)
     return (
       <Container>
         <Content padder>
@@ -63,12 +96,14 @@ export default class AddRating extends React.Component {
             step = {0.5}
             onValueChange={(outletAccess) => this.setState({outletAccess})}
             style={{marginLeft: 20, marginRight: 20 }} />
-          <CheckBox
-            title="Are there bathrooms?"
-            checked={this.state.restrooms}
-            style = {{backgroundColor: 'gray'}}
-            onPress={() => this.setState({restrooms: !this.state.restrooms})}
-          />
+          <FormLabel>Restrooms: {this.state.restrooms}</FormLabel>
+          <Slider
+            value={this.state.restrooms}
+            animateTransitions = {true}
+            maximumValue = {5}
+            step = {0.5}
+            onValueChange={(restrooms) => this.setState({restrooms})}
+            style={{marginLeft: 20, marginRight: 20 }} />
           <FormLabel>Study Space Review:</FormLabel>
           <TextInput
             multiline={true}
@@ -82,12 +117,40 @@ export default class AddRating extends React.Component {
             // check that I have place id --> this.props.navigation.state.params.id
             // bring state to firestore
             // redirect / show a card / empty rating fields
-            console.log('db is', db)
-            db.collection('blah').doc(this.props.navigation.state.params.id).set(this.state)
-          }}/>
+            console.log('in the onPress')
+            let currentRatings = calculateNewRatings(this.state)
+            let cafeRef = db.collection(this.props.navigation.state.params.id).doc('ratings')
+
+
+            console.log('currentRatings', currentRatings)
+
+            cafeRef
+            .set({
+              currentOverallRating: currentRatings.currentOverallRating.toFixed(1),
+              currentSeating: currentRatings.currentSeating.toFixed(1),
+              currentOutletAccess: currentRatings.currentOutletAccess.toFixed(1),
+              currentRestrooms: currentRatings.currentRestrooms.toFixed(1),
+              currentReviewNumber: currentRatings.currentReviewNumber
+            })
+
+
+            if (this.state.review) { 
+              console.log('in the if')
+              cafeRef.collection('reviews').doc()
+              .set({review: this.state.review})
+            } else {
+              console.log('in the else')
+            }
+
+   
+          }} />
         </Content>
       </Container>
     )
   }
 }
+
+
+// how should i organize the firestore???
+//
 
