@@ -1,8 +1,6 @@
 import React from 'react'
-import { StyleSheet, Image, Text, View, TextInput } from 'react-native'
+import { TextInput } from 'react-native'
 import { H2, Container, Content } from 'native-base'
-import Spacer from '../components/Spacer'
-import t from 'tcomb-form-native'
 import { FormLabel, FormInput, Slider, Button } from 'react-native-elements'
 import { db } from '../config/firebase'
 
@@ -45,29 +43,20 @@ export default class AddRating extends React.Component {
   componentDidMount(){
     db.collection(this.props.navigation.state.params.id).doc('ratings').get()
     .then(doc => {
-      console.log('iin compdidmount doc is', doc)
       if (doc.data()){
-        console.log('in compDidMount if')
         let data = doc.data()
-    
+
         this.setState({currentReviewNumber: data.currentReviewNumber,
           currentOverallRating: data.currentOverallRating,
           currentSeating: data.currentSeating,
           currentOutletAccess: data.currentOutletAccess,
-          currentRestrooms: data.currentRestrooms
-        })
-      } else {
-        console.log('in compDidMount else')
+          currentRestrooms: data.currentRestrooms})
       }
 
     })
   }
 
-  
-
   render() {
-    console.log('props are', this.props.navigation.state)
-    console.log('state is', this.state)
     return (
       <Container>
         <Content padder>
@@ -114,15 +103,9 @@ export default class AddRating extends React.Component {
           />
           <FormInput onChangeText={this.someFunction} />
           <Button title="Add Rating" onPress={() => {
-            // check that I have place id --> this.props.navigation.state.params.id
-            // bring state to firestore
-            // redirect / show a card / empty rating fields
-            console.log('in the onPress')
+
             let currentRatings = calculateNewRatings(this.state)
             let cafeRef = db.collection(this.props.navigation.state.params.id).doc('ratings')
-
-
-            console.log('currentRatings', currentRatings)
 
             cafeRef
             .set({
@@ -133,24 +116,14 @@ export default class AddRating extends React.Component {
               currentReviewNumber: currentRatings.currentReviewNumber
             })
 
-
-            if (this.state.review) { 
-              console.log('in the if')
+            if (this.state.review) {
               cafeRef.collection('reviews').doc()
               .set({review: this.state.review})
-            } else {
-              console.log('in the else')
             }
 
-   
           }} />
         </Content>
       </Container>
     )
   }
 }
-
-
-// how should i organize the firestore???
-//
-

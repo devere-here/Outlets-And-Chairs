@@ -1,13 +1,10 @@
-import MapView, { Marker, Callout } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps'
 import React from 'react'
-import { StyleSheet, Image, Text, View, Button } from 'react-native'
-import { H3, Container, Content } from 'native-base'
-import Spacer from '../components/Spacer'
+import { Text, View, Button } from 'react-native'
+import { H3 } from 'native-base'
 import { googlePlacesKey } from '../secrets'
 
 import { db } from '../config/firebase'
-
-
 
 export default class Map extends React.Component {
   constructor(props) {
@@ -21,12 +18,11 @@ export default class Map extends React.Component {
       },
       cafeInfo: [],
       bool: false
-    };
+    }
     this.onRegionChange = this.onRegionChange.bind(this)
   }
 
   componentDidMount() {
-    console.log('in the componentDidMOunt')
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude,
           longitude = position.coords.longitude,
@@ -37,27 +33,25 @@ export default class Map extends React.Component {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       }
-      
+
 
       const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=cafe&key=${googlePlacesKey}`
 
-      console.log('about to fetch')
       fetch(url)
         .then(res => res.json())
         .then(res => {
           res.results.forEach(ele => {
-       
+
             if (ele.opening_hours){
               cafeInfo.push({name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
             } else {
               console.log('you just lost a cafe make sure you dont lose too many')
             }
-            
+
           })
 
         this.setState({ region: newRegion, cafeInfo: cafeInfo})
 
-          
         })
         .then(err => {
           console.log('err is ', err)
@@ -90,9 +84,10 @@ export default class Map extends React.Component {
             this.state.cafeInfo.length <= 0
               ? null
               : this.state.cafeInfo.map((ele) => {
-    
+
                   return (
-                    <Marker key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} onPress={() => {
+                    <Marker
+key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} onPress={() => {
                      console.log('in onPress')
                      console.log('ele.id is', ele.id)
                      db.collection(ele.id).doc('ratings').get()
@@ -109,12 +104,11 @@ export default class Map extends React.Component {
                        this.setState({bool: !this.state.bool})
 
                      })
-                     
+
 
                     }} >
                     <Callout>
                       <View>
-                        {console.log('in the view ele is', ele)}
                         <H3>{ele.name}</H3>
                         <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
                         <Text>Study Space Rating: {ele.currentOverallRating || 'N/A'}</Text>
@@ -127,16 +121,10 @@ export default class Map extends React.Component {
                   )
                 })
           }
-            
+
           </MapView>
       </View>
-    );
+    )
   }
 }
 
-
-// on onPress I'd like to open a new screen where the user can fill out a form on the specified cafe
-// to do this i need to 
-  // create a fnct that opens a new screen
-  // pass name and place id to new screen
-  // have submission data be entered in firestore
