@@ -114,12 +114,15 @@ export default class AddRating extends React.Component {
               averageRestroomRating: newAverageRatings.averageRestroomRating.toFixed(1),
               numberOfRatings: newAverageRatings.numberOfRatings,
               latitude: this.props.navigation.state.params.latitude,
-              longitude: this.props.navigation.state.params.longitude
+              longitude: this.props.navigation.state.params.longitude,
+              id: this.props.navigation.state.params.id
             })
 
             if (this.state.userReview) {
               let date = new Date()
+              console.log('this.state.userReview', this.state.userReview, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
               db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
+              .doc()
               .set({userReview: this.state.userReview,
                     date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
             }

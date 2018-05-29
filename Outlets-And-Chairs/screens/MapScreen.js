@@ -26,7 +26,7 @@ export default class Map extends React.Component {
         longitudeDelta: 0.0421,
       },
       cafeInfo: [],
-      bool: false
+      idArr: [],
     }
     this.getLocalCafes = this.getLocalCafes.bind(this)
     this.getCafeRatings = this.getCafeRatings.bind(this)
@@ -34,22 +34,38 @@ export default class Map extends React.Component {
 
   componentDidMount(){
     this.getLocalCafes()
-    .then(() => this.getCafeRatings())
+    this.getCafeRatings()
 
   }
 
   getCafeRatings(){
+
     db.collection('ratings')
-      .where('latitude', '>', this.state.region.latitude - 1)
-      .where('latitude', '<', this.state.region.latitude + 1)
-      .where('longitude', '>', this.state.region.longitude - 1)
-      .where('longitude', '<', this.state.region.longitude + 1)
+      .where('longitude', '>', +this.state.region.longitude - 1)
+      .where('longitude', '<', +this.state.region.longitude + 1)
     .get()
     .then(snapshot => {
-      snapshot.ferEach(doc => {
-        
-      })
+      // creates a shallow copy of cafeInfo
+      let newCafeInfoArr = this.state.cafeInfo.slice(0)
+      console.log('cafe info', this.state.cafeInfo)
+      console.log('idArr is', this.state.idArr)
+      snapshot.forEach(doc => {
+        // checks to see if snapshot id is in idxArr
+        // since I added data to idxArr and cafeInfo at the same time
+        // if the id is in idxArr then that cafe's data is in cafeInfo
+        let idx = this.state.idArr.indexOf(doc.data().id)
+        console.log('doc.data().id', doc.data().id)
+        if (idx !== -1){
+          let combinedObj = Object.assign(doc.data(), newCafeInfoArr[idx])
+          newCafeInfoArr[idx] = combinedObj
+          console.log('our new object is', combinedObj)
+        }
 
+      })
+      // after altering our shallow copy of cafeInfo we set that copy to be our new cafeInfo
+      console.log('newCafeInfoArr', newCafeInfoArr)
+      this.setState({cafeInfo: newCafeInfoArr})
+      console.log('set state is finished')
 
     })
 
@@ -59,16 +75,16 @@ export default class Map extends React.Component {
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude,
           longitude = position.coords.longitude,
-          cafeInfo = []
+          cafeInfo = [],
+          idArr = []
+
       const newRegion = {
         latitude: latitude,
         longitude: longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      }
-
-
-      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1000&type=cafe&key=${googlePlacesKey}`
+      },
+        url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1000&type=cafe&key=${googlePlacesKey}`
 
       fetch(url)
         .then(res => res.json())
@@ -77,13 +93,14 @@ export default class Map extends React.Component {
 
             if (ele.opening_hours){
               cafeInfo.push({name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
+              idArr.push(ele.place_id)
             } else {
               console.log('you just lost a cafe make sure you dont lose too many')
             }
 
           })
 
-        this.setState({ region: newRegion, cafeInfo: cafeInfo})
+        this.setState({ region: newRegion, cafeInfo, idArr})
 
         })
         .then(err => {
@@ -106,12 +123,11 @@ export default class Map extends React.Component {
           this.state.cafeInfo.length === 0
             ? null
             : this.state.cafeInfo.map((ele) => {
-
                 return (
                   <Marker
                     key={ele.id}
-                    pinColor={ele.isOpen ? 'green' : 'red'} 
-                    coordinate={{ latitude: ele.lat, longitude: ele.lng }} 
+                    pinColor={ele.isOpen.open_now ? 'green' : 'red'}
+                    coordinate={{ latitude: ele.lat, longitude: ele.lng }}
                     onPress={() => {
                       db.collection('ratings').doc(ele.id).get()
                       .then(doc => {
@@ -124,13 +140,12 @@ export default class Map extends React.Component {
                         } else {
                           console.log('in the else')
                         }
-                        this.setState({bool: !this.state.bool})
                       })
                     }} >
                   <Callout>
                     <View>
                       <H3>{ele.name}</H3>
-                      <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
+                      <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
                       <Text>Study Space Rating: {ele.averageOverallRating || 'N/A'}</Text>
                       <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
                       <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
