@@ -1,10 +1,19 @@
 import MapView, { Marker, Callout } from 'react-native-maps'
 import React from 'react'
-import { Text, View, Button } from 'react-native'
+import { Text, View, Button, StyleSheet } from 'react-native'
 import { H3 } from 'native-base'
 import { googlePlacesKey } from '../secrets'
-
 import { db } from '../config/firebase'
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
+  }
+
+})
 
 export default class Map extends React.Component {
   constructor(props) {
@@ -19,7 +28,6 @@ export default class Map extends React.Component {
       cafeInfo: [],
       bool: false
     }
-    this.onRegionChange = this.onRegionChange.bind(this)
   }
 
   componentDidMount() {
@@ -35,7 +43,7 @@ export default class Map extends React.Component {
       }
 
 
-      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=cafe&key=${googlePlacesKey}`
+      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1000&type=cafe&key=${googlePlacesKey}`
 
       fetch(url)
         .then(res => res.json())
@@ -59,70 +67,57 @@ export default class Map extends React.Component {
     })
   }
 
-
-  onRegionChange(region) {
-    console.log('in onRegionChange')
-    this.setState({ region })
-  }
-
-
   render() {
     const { navigate } = this.props.navigation
     return (
 
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5FCFF' }} >
-        <View style={{height: '5%', backgroundColor: 'white'}}><Text>Press Here to Search</Text></View>
-          {navigator.geolocation.getCurrentPosition((position) => { console.log('in success', 'latitude', position.coords.latitude, 'longitude', position.coords.longitude) })}
-          <MapView
-            region={this.state.region}
-            showsUserLocation = {true}
-            style={{
-  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
-  }}
-          >
-          {
-            this.state.cafeInfo.length <= 0
-              ? null
-              : this.state.cafeInfo.map((ele) => {
+      <View style={styles.container} >
+        <MapView
+          region={this.state.region}
+          showsUserLocation = {true}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
+        {
+          this.state.cafeInfo.length === 0
+            ? null
+            : this.state.cafeInfo.map((ele) => {
 
-                  return (
-                    <Marker
-key={ele.id} pinColor={ele.isOpen ? 'green' : 'red'} coordinate={{ latitude: ele.lat, longitude: ele.lng }} onPress={() => {
-                     console.log('in onPress')
-                     console.log('ele.id is', ele.id)
-                     db.collection(ele.id).doc('ratings').get()
-                     .then(doc => {
-                       if (doc.data()){
-                         console.log('in the if doc data is', doc.data())
-                         ele.currentOverallRating = doc.data().currentOverallRating
-                         ele.currentSeating = doc.data().currentSeating
-                         ele.currentOutletAccess = doc.data().currentOutletAccess
-                         ele.currentRestrooms = doc.data().currentRestrooms
-                       } else {
-                         console.log('in the else')
-                       }
-                       this.setState({bool: !this.state.bool})
-
-                     })
-
-
+                return (
+                  <Marker
+                    key={ele.id}
+                    pinColor={ele.isOpen ? 'green' : 'red'} 
+                    coordinate={{ latitude: ele.lat, longitude: ele.lng }} 
+                    onPress={() => {
+                      db.collection(ele.id).doc('ratings').get()
+                      .then(doc => {
+                        if (doc.data()){
+                          console.log('in the if doc data is', doc.data())
+                          ele.averageOverallRating = doc.data().averageOverallRating
+                          ele.averageSeatingRating = doc.data().averageSeatingRating
+                          ele.averageOutletRating = doc.data().averageOutletRating
+                          ele.averageRestroomRating = doc.data().averageRestroomRating
+                        } else {
+                          console.log('in the else')
+                        }
+                        this.setState({bool: !this.state.bool})
+                      })
                     }} >
-                    <Callout>
-                      <View>
-                        <H3>{ele.name}</H3>
-                        <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
-                        <Text>Study Space Rating: {ele.currentOverallRating || 'N/A'}</Text>
-                        <Text>Number of Outlets: {ele.currentOutletAccess || 'N/A'}</Text>
-                        <Text>Number of Chairs: {ele.currentSeating || 'N/A'}</Text>
-                        <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
-                      </View>
-                    </Callout>
-                    </Marker>
-                  )
-                })
-          }
-
-          </MapView>
+                  <Callout>
+                    <View>
+                      <H3>{ele.name}</H3>
+                      <Text>{ele.isOpen ? 'Open' : 'Closed'}</Text>
+                      <Text>Study Space Rating: {ele.averageOverallRating || 'N/A'}</Text>
+                      <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
+                      <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
+                      <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
+                      <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
+                    </View>
+                  </Callout>
+                  </Marker>
+                )
+              })
+        }
+        </MapView>
       </View>
     )
   }

@@ -1,23 +1,28 @@
 import React from 'react'
-import { TextInput } from 'react-native'
+import { StyleSheet, TextInput } from 'react-native'
 import { H2, Container, Content } from 'native-base'
-import { FormLabel, FormInput, Slider, Button } from 'react-native-elements'
+import { FormLabel, Slider, Button } from 'react-native-elements'
 import { db } from '../config/firebase'
 
-// right now this is a monstrosity
+const styles = StyleSheet.create({
+  formItems: {
+    marginLeft: 20,
+    marginRight: 20
+  },
+})
 
-const calculateNewRatings = (state) => {
+const calculateNewAverageRatings = (state) => {
   let newState = {}
 
-  newState.currentOverallRating = (state.currentOverallRating * state.currentReviewNumber + state.overallRating) / (state.currentReviewNumber + 1)
+  newState.averageOverallRating = (state.averageOverallRating * state.numberOfRatings + state.userOverallRating) / (state.numberOfRatings + 1)
 
-  newState.currentSeating = (state.currentSeating * state.currentReviewNumber + state.seating) / (state.currentReviewNumber + 1)
+  newState.averageSeatingRating = (state.averageSeatingRating * state.numberOfRatings + state.userSeatingRating) / (state.numberOfRatings + 1)
 
-  newState.currentOutletAccess = (state.currentOutletAccess * state.currentReviewNumber + state.outletAccess) / (state.currentReviewNumber + 1)
+  newState.averageOutletRating = (state.averageOutletRating * state.numberOfRatings + state.userOutletRating) / (state.numberOfRatings + 1)
 
-  newState.currentRestrooms = (state.currentRestrooms * state.currentReviewNumber + state.restrooms) / (state.currentReviewNumber + 1)
+  newState.averageRestroomRating = (state.averageRestroomRating * state.numberOfRatings + state.userRestroomRating) / (state.numberOfRatings + 1)
 
-  newState.currentReviewNumber = state.currentReviewNumber + 1
+  newState.numberOfRatings = state.numberOfRatings + 1
 
   return newState
 
@@ -27,32 +32,30 @@ export default class AddRating extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-      overallRating: 0,
-      seating: 0,
-      outletAccess: 0,
-      restrooms: 0,
-      review: '',
-      currentReviewNumber: 0,
-      currentOverallRating: 0,
-      currentSeating: 0,
-      currentOutletAccess: 0,
-      currentRestrooms: 0
+      userOverallRating: 0,
+      userSeatingRating: 0,
+      userOutletRating: 0,
+      userRestroomRating: 0,
+      userReview: '',
+      numberOfRatings: 0,
+      averageOverallRating: 0,
+      averageSeatingRating: 0,
+      averageOutletRating: 0,
+      averageRestroomRating: 0
     }
   }
 
   componentDidMount(){
     db.collection(this.props.navigation.state.params.id).doc('ratings').get()
     .then(doc => {
-      if (doc.data()){
-        let data = doc.data()
-
-        this.setState({currentReviewNumber: data.currentReviewNumber,
-          currentOverallRating: data.currentOverallRating,
-          currentSeating: data.currentSeating,
-          currentOutletAccess: data.currentOutletAccess,
-          currentRestrooms: data.currentRestrooms})
+      let data = doc.data()
+      if (data){
+        this.setState({numberOfRatings: data.numberOfRatings,
+          averageOverallRating: data.averageOverallRating,
+          averageSeatingRating: data.averageSeatingRating,
+          averageOutletRating: data.averageOutletRating,
+          averageRestroomRating: data.averageRestroomRating})
       }
-
     })
   }
 
@@ -61,64 +64,61 @@ export default class AddRating extends React.Component {
       <Container>
         <Content padder>
           <H2>{this.props.navigation.state.params.name}</H2>
-          <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
+          <FormLabel>Overall Rating: {this.state.userOverallRating}</FormLabel>
           <Slider
-            value={this.state.overallRating}
+            value={this.state.userOverallRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(overallRating) => this.setState({overallRating})}
-            style={{marginLeft: 20, marginRight: 20 }} />
-          <FormLabel>Access to Chairs: {this.state.seating}</FormLabel>
+            onValueChange={(userOverallRating) => this.setState({userOverallRating})}
+            style={styles.formItems} />
+          <FormLabel>Access to Chairs: {this.state.userSeatingRating}</FormLabel>
           <Slider
-            value={this.state.seating}
+            value={this.state.userSeatingRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(seating) => this.setState({seating})}
-            style={{marginLeft: 20, marginRight: 20 }} />
-          <FormLabel>Access to Outlets: {this.state.outletAccess}</FormLabel>
+            onValueChange={(userSeatingRating) => this.setState({userSeatingRating})}
+            style={styles.formItems} />
+          <FormLabel>Access to Outlets: {this.state.userOutletRating}</FormLabel>
           <Slider
-            value={this.state.outletAccess}
+            value={this.state.userOutletRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(outletAccess) => this.setState({outletAccess})}
-            style={{marginLeft: 20, marginRight: 20 }} />
-          <FormLabel>Restrooms: {this.state.restrooms}</FormLabel>
+            onValueChange={(userOutletRating) => this.setState({userOutletRating})}
+            style={styles.formItems} />
+          <FormLabel>Restrooms: {this.state.userRestroomRating}</FormLabel>
           <Slider
-            value={this.state.restrooms}
+            value={this.state.userRestroomRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(restrooms) => this.setState({restrooms})}
-            style={{marginLeft: 20, marginRight: 20 }} />
+            onValueChange={(userRestroomRating) => this.setState({userRestroomRating})}
+            style={styles.formItems} />
           <FormLabel>Study Space Review:</FormLabel>
           <TextInput
             multiline={true}
             numberOfLines = {4}
-            value = {this.state.review}
-            onChangeText = {(review) => this.setState({review})}
-            style={{height: 100, marginLeft: 20, marginRight: 20 }}
+            value = {this.state.userReview}
+            onChangeText = {(userReview) => this.setState({userReview})}
+            style={styles.formItems}
           />
-          <FormInput onChangeText={this.someFunction} />
           <Button title="Add Rating" onPress={() => {
-
-            let currentRatings = calculateNewRatings(this.state)
+            let newAverageRatings = calculateNewAverageRatings(this.state)
             let cafeRef = db.collection(this.props.navigation.state.params.id).doc('ratings')
-
             cafeRef
             .set({
-              currentOverallRating: currentRatings.currentOverallRating.toFixed(1),
-              currentSeating: currentRatings.currentSeating.toFixed(1),
-              currentOutletAccess: currentRatings.currentOutletAccess.toFixed(1),
-              currentRestrooms: currentRatings.currentRestrooms.toFixed(1),
-              currentReviewNumber: currentRatings.currentReviewNumber
+              averageOverallRating: newAverageRatings.averageOverallRating.toFixed(1),
+              averageSeatingRating: newAverageRatings.averageSeatingRating.toFixed(1),
+              averageOutletRating: newAverageRatings.averageOutletRating.toFixed(1),
+              averageRestroomRating: newAverageRatings.averageRestroomRating.toFixed(1),
+              numberOfRatings: newAverageRatings.numberOfRatings
             })
 
-            if (this.state.review) {
+            if (this.state.userReview) {
               cafeRef.collection('reviews').doc()
-              .set({review: this.state.review})
+              .set({userReview: this.state.userReview})
             }
 
           }} />
