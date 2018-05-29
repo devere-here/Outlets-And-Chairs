@@ -46,7 +46,7 @@ export default class AddRating extends React.Component {
   }
 
   componentDidMount(){
-    db.collection(this.props.navigation.state.params.id).doc('ratings').get()
+    db.collection('ratings').doc(this.props.navigation.state.params.id).get()
     .then(doc => {
       let data = doc.data()
       if (data){
@@ -106,19 +106,22 @@ export default class AddRating extends React.Component {
           />
           <Button title="Add Rating" onPress={() => {
             let newAverageRatings = calculateNewAverageRatings(this.state)
-            let cafeRef = db.collection(this.props.navigation.state.params.id).doc('ratings')
-            cafeRef
+            db.collection('ratings').doc(this.props.navigation.state.params.id)
             .set({
               averageOverallRating: newAverageRatings.averageOverallRating.toFixed(1),
               averageSeatingRating: newAverageRatings.averageSeatingRating.toFixed(1),
               averageOutletRating: newAverageRatings.averageOutletRating.toFixed(1),
               averageRestroomRating: newAverageRatings.averageRestroomRating.toFixed(1),
-              numberOfRatings: newAverageRatings.numberOfRatings
+              numberOfRatings: newAverageRatings.numberOfRatings,
+              latitude: this.props.navigation.state.params.latitude,
+              longitude: this.props.navigation.state.params.longitude
             })
 
             if (this.state.userReview) {
-              cafeRef.collection('reviews').doc()
-              .set({userReview: this.state.userReview})
+              let date = new Date()
+              db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
+              .set({userReview: this.state.userReview,
+                    date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
             }
 
           }} />

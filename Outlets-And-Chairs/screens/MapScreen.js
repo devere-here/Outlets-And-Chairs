@@ -28,9 +28,34 @@ export default class Map extends React.Component {
       cafeInfo: [],
       bool: false
     }
+    this.getLocalCafes = this.getLocalCafes.bind(this)
+    this.getCafeRatings = this.getCafeRatings.bind(this)
   }
 
-  componentDidMount() {
+  componentDidMount(){
+    this.getLocalCafes()
+    .then(() => this.getCafeRatings())
+
+  }
+
+  getCafeRatings(){
+    db.collection('ratings')
+      .where('latitude', '>', this.state.region.latitude - 1)
+      .where('latitude', '<', this.state.region.latitude + 1)
+      .where('longitude', '>', this.state.region.longitude - 1)
+      .where('longitude', '<', this.state.region.longitude + 1)
+    .get()
+    .then(snapshot => {
+      snapshot.ferEach(doc => {
+        
+      })
+
+
+    })
+
+  }
+
+  getLocalCafes() {
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude,
           longitude = position.coords.longitude,
@@ -88,7 +113,7 @@ export default class Map extends React.Component {
                     pinColor={ele.isOpen ? 'green' : 'red'} 
                     coordinate={{ latitude: ele.lat, longitude: ele.lng }} 
                     onPress={() => {
-                      db.collection(ele.id).doc('ratings').get()
+                      db.collection('ratings').doc(ele.id).get()
                       .then(doc => {
                         if (doc.data()){
                           console.log('in the if doc data is', doc.data())
@@ -110,7 +135,7 @@ export default class Map extends React.Component {
                       <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
                       <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
                       <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
-                      <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
+                      <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
                     </View>
                   </Callout>
                   </Marker>
