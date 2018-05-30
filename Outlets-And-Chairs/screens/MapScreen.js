@@ -150,7 +150,8 @@ export default class Map extends React.Component {
                       <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
                       <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
                       <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
-                      <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
+                      <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
+                      <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
                     </View>
                   </Callout>
                   </Marker>
