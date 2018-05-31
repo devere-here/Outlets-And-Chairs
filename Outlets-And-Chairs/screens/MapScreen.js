@@ -81,8 +81,8 @@ export default class Map extends React.Component {
       const newRegion = {
         latitude: latitude,
         longitude: longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.025,
+        longitudeDelta: 0.025,
       },
         url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1000&type=cafe&key=${googlePlacesKey}`
 
@@ -150,7 +150,8 @@ export default class Map extends React.Component {
                       <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
                       <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
                       <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
-                      <Button title="Add Review" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
+                      <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
+                      <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
                     </View>
                   </Callout>
                   </Marker>
