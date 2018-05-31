@@ -81,8 +81,8 @@ export default class Map extends React.Component {
       const newRegion = {
         latitude: latitude,
         longitude: longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.025,
+        longitudeDelta: 0.025,
       },
         url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1000&type=cafe&key=${googlePlacesKey}`
 
