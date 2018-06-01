@@ -33,7 +33,7 @@ export default class Map extends React.Component {
     this.getLocalCafes = this.getLocalCafes.bind(this)
     this.getCafeRatings = this.getCafeRatings.bind(this)
     this.handleMarkerPress = this.handleMarkerPress.bind(this)
-    this.onNavigateBack = this.onNavigateBack.bind(this)
+    //this.onNavigateBack = this.onNavigateBack.bind(this)
   }
 
   componentDidMount(){
@@ -163,12 +163,9 @@ export default class Map extends React.Component {
                       <View>
                         <H3>{ele.name}</H3>
                         <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
-                        <Text>Study Space Rating: {ele.overallRating}</Text>
-                        <Text>Outlet Access: {ele.outletRating}</Text>
-                        <Text>Seating Access: {ele.seatingRating}</Text>
-                        <Text>Reastrooms: {ele.restroomRating}</Text>
                         <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng, navigateBack: this.onNavigateBack, refresh: this.state.refresh})} />
-                        <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
+                        <Button title="See Rating" onPress={() => navigate('RatingsAndReviews', { id: ele.id })} />
+                        <Button title="See Reviews" onPress={() => navigate('RatingsAndReviews', { id: ele.id })} />
                       </View>
                     </Callout>
                   </Marker>
