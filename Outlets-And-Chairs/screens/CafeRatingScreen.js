@@ -1,7 +1,6 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import { H2, Container, Content } from 'native-base'
-import { FormLabel, Slider, Button } from 'react-native-elements'
+import { H1, H2} from 'native-base'
 import { db } from '../firebase'
 
 export default class CafeRating extends React.Component {
@@ -29,6 +28,7 @@ export default class CafeRating extends React.Component {
     render(){
         return (
             <View>
+                <H1>{this.props.navigation.state.params.name}</H1>
                 <H2>Overall Rating: {this.state.overallRating}</H2>
                 <H2>Seating Rating: {this.state.seatingRating}</H2>
                 <H2>Outlet Rating: {this.state.outletRating}</H2>

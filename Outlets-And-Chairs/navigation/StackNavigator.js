@@ -1,14 +1,17 @@
 import { createStackNavigator} from 'react-navigation'
 import AddRatingScreen from '../screens/AddRatingScreen'
 import MapScreen from '../screens/MapScreen'
-import CafeReviewScreen from '../screens/CafeReviewScreen'
-import RatingsTabNav from './RatingsTabNavigator'
+import CafeRating from '../screens/CafeRatingScreen'
+import CafeReviews from '../screens/CafeReviewScreen'
+
+
 
 
 const stackNav = createStackNavigator({
     Map: { screen: MapScreen },
     AddRating: { screen: AddRatingScreen },
-    RatingsAndReviews: { screen: RatingsTabNav }
+    CafeRating: { screen: CafeRating },
+    CafeReviews: { screen: CafeReviews }
 })
 
 export default stackNav
