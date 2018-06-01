@@ -3,7 +3,7 @@ import React from 'react'
 import { Text, View, Button, StyleSheet } from 'react-native'
 import { H3 } from 'native-base'
 import { googlePlacesKey } from '../secrets'
-import { db } from '../config/firebase'
+import { db } from '../firebase'
 
 const styles = StyleSheet.create({
   container: {
@@ -27,45 +27,54 @@ export default class Map extends React.Component {
       },
       cafeInfo: [],
       idArr: [],
+      //refresh: false
+      
     }
     this.getLocalCafes = this.getLocalCafes.bind(this)
     this.getCafeRatings = this.getCafeRatings.bind(this)
+    this.handleMarkerPress = this.handleMarkerPress.bind(this)
+    this.onNavigateBack = this.onNavigateBack.bind(this)
   }
 
   componentDidMount(){
     this.getLocalCafes()
     this.getCafeRatings()
-
   }
+
+  // onNavigateBack(bool){
+  //   console.log('in navigateBack bool is', bool, 'this.state.refresh', this.state.refresh)
+  //   this.setState({refresh: bool})
+  // }
 
   getCafeRatings(){
 
     db.collection('ratings')
-      .where('longitude', '>', +this.state.region.longitude - 1)
-      .where('longitude', '<', +this.state.region.longitude + 1)
+      .where('longitude', '>=', +this.state.region.longitude - 1)
+      .where('longitude', '<=', +this.state.region.longitude + 1)
     .get()
     .then(snapshot => {
       // creates a shallow copy of cafeInfo
+      console.log('did it work')
       let newCafeInfoArr = this.state.cafeInfo.slice(0)
-      console.log('cafe info', this.state.cafeInfo)
-      console.log('idArr is', this.state.idArr)
+      //console.log('cafe info', this.state.cafeInfo)
+      //console.log('idArr is', this.state.idArr)
       snapshot.forEach(doc => {
         // checks to see if snapshot id is in idxArr
         // since I added data to idxArr and cafeInfo at the same time
         // if the id is in idxArr then that cafe's data is in cafeInfo
         let idx = this.state.idArr.indexOf(doc.data().id)
-        console.log('doc.data().id', doc.data().id)
+        //console.log('doc.data().id', doc.data().id)
         if (idx !== -1){
           let combinedObj = Object.assign(doc.data(), newCafeInfoArr[idx])
           newCafeInfoArr[idx] = combinedObj
-          console.log('our new object is', combinedObj)
+          //console.log('our new object is', combinedObj)
         }
 
       })
       // after altering our shallow copy of cafeInfo we set that copy to be our new cafeInfo
-      console.log('newCafeInfoArr', newCafeInfoArr)
+      //console.log('newCafeInfoArr', newCafeInfoArr)
       this.setState({cafeInfo: newCafeInfoArr})
-      console.log('set state is finished')
+      //console.log('set state is finished')
 
     })
 
@@ -109,7 +118,27 @@ export default class Map extends React.Component {
     })
   }
 
+  handleMarkerPress(ele){
+    db.collection('ratings').doc(ele.id).get()
+    .then(doc => {
+      if (doc.data()){
+        console.log('in the if doc data is', doc.data())
+        ele = Object.assign({}, ele, doc.data())
+        console.log('ele is', ele)
+      } else {
+        console.log('in the else')
+        ele.overallRating = 'N/A'
+      }
+      console.log('at end of handleMarkerPress', ele)
+
+    })
+
+  }
+
   render() {
+    console.log('in the mapScreen render')
+
+
     const { navigate } = this.props.navigation
     return (
 
@@ -123,37 +152,25 @@ export default class Map extends React.Component {
           this.state.cafeInfo.length === 0
             ? null
             : this.state.cafeInfo.map((ele) => {
+              
                 return (
                   <Marker
                     key={ele.id}
                     pinColor={ele.isOpen.open_now ? 'green' : 'red'}
                     coordinate={{ latitude: ele.lat, longitude: ele.lng }}
-                    onPress={() => {
-                      db.collection('ratings').doc(ele.id).get()
-                      .then(doc => {
-                        if (doc.data()){
-                          console.log('in the if doc data is', doc.data())
-                          ele.averageOverallRating = doc.data().averageOverallRating
-                          ele.averageSeatingRating = doc.data().averageSeatingRating
-                          ele.averageOutletRating = doc.data().averageOutletRating
-                          ele.averageRestroomRating = doc.data().averageRestroomRating
-                        } else {
-                          console.log('in the else')
-                        }
-                      })
-                    }} >
-                  <Callout>
-                    <View>
-                      <H3>{ele.name}</H3>
-                      <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
-                      <Text>Study Space Rating: {ele.averageOverallRating || 'N/A'}</Text>
-                      <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
-                      <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
-                      <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
-                      <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
-                      <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
-                    </View>
-                  </Callout>
+                    onPress={() => {this.handleMarkerPress(ele)}} >
+                    <Callout>
+                      <View>
+                        <H3>{ele.name}</H3>
+                        <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
+                        <Text>Study Space Rating: {ele.overallRating}</Text>
+                        <Text>Outlet Access: {ele.outletRating}</Text>
+                        <Text>Seating Access: {ele.seatingRating}</Text>
+                        <Text>Reastrooms: {ele.restroomRating}</Text>
+                        <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng, navigateBack: this.onNavigateBack, refresh: this.state.refresh})} />
+                        <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
+                      </View>
+                    </Callout>
                   </Marker>
                 )
               })

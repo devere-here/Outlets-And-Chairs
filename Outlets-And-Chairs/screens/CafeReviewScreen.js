@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { H2 } from 'native-base'
-import { db } from '../config/firebase'
+import { db } from '../firebase'
 import uuid from 'uuid-js'
 
 const styles = StyleSheet.create({
@@ -37,7 +37,6 @@ export default class CafeReviews extends React.Component {
                 reviews.push(doc.data())
             })
             this.setState({reviews})
-
         })
     }
 
@@ -57,15 +56,9 @@ export default class CafeReviews extends React.Component {
                                 </View>
                             )
                         })
-
                     )
-
                 }
             </View>
-
-
         )
     }
-
-
 }

@@ -1,133 +1,161 @@
 import React from 'react'
-import { StyleSheet, TextInput } from 'react-native'
+import { StyleSheet, TextInput, Alert } from 'react-native'
 import { H2, Container, Content } from 'native-base'
 import { FormLabel, Slider, Button } from 'react-native-elements'
-import { db } from '../config/firebase'
+import { db } from '../firebase'
 
 const styles = StyleSheet.create({
   formItems: {
     marginLeft: 20,
     marginRight: 20
   },
+  textBoxInput: {
+    marginLeft: 20,
+    marginRight: 20,
+    height: 150
+  },
 })
 
-const calculateNewAverageRatings = (state) => {
-  let newState = {}
-
-  newState.averageOverallRating = (state.averageOverallRating * state.numberOfRatings + state.userOverallRating) / (state.numberOfRatings + 1)
-
-  newState.averageSeatingRating = (state.averageSeatingRating * state.numberOfRatings + state.userSeatingRating) / (state.numberOfRatings + 1)
-
-  newState.averageOutletRating = (state.averageOutletRating * state.numberOfRatings + state.userOutletRating) / (state.numberOfRatings + 1)
-
-  newState.averageRestroomRating = (state.averageRestroomRating * state.numberOfRatings + state.userRestroomRating) / (state.numberOfRatings + 1)
-
-  newState.numberOfRatings = state.numberOfRatings + 1
-
-  return newState
-
-}
 
 export default class AddRating extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-      userOverallRating: 0,
-      userSeatingRating: 0,
-      userOutletRating: 0,
-      userRestroomRating: 0,
-      userReview: '',
-      numberOfRatings: 0,
-      averageOverallRating: 0,
-      averageSeatingRating: 0,
-      averageOutletRating: 0,
-      averageRestroomRating: 0
+      overallRating: 0,
+      seatingRating: 0,
+      outletRating: 0,
+      restroomRating: 0,
+      review: ''
+    }
+
+    this.handleSubmit = this.handleSubmit.bind(this)
+    this.submitRating = this.submitRating.bind(this)
+    this.submitReview = this.submitReview.bind(this)
+
+  }
+
+  submitRating(newRating){
+
+    let cafeRef = db.collection('ratings').doc(this.props.navigation.state.params.id),
+    newAverageRatings = {}
+
+    cafeRef.get()
+    .then(doc => {
+
+      let data = doc.data()
+
+      if (data){
+
+        let keys = Object.keys(newRating)
+
+        keys.forEach((field) => {
+            if (field !== 'review'){
+              newAverageRatings[field] = (data[field] * data.numberOfRatings + newRating[field]) / (data.numberOfRatings + 1)
+              newAverageRatings[field] = newAverageRatings[field].toFixed(1)
+            }
+        })
+
+        newAverageRatings.numberOfRatings = data.numberOfRatings + 1
+
+      } else {
+        newAverageRatings = newRating
+        newAverageRatings.numberOfRatings = 1
+        newAverageRatings.id = this.props.navigation.state.params.id
+        newAverageRatings.longitude = this.props.navigation.state.params.longitude
+      }
+
+      cafeRef.set(newAverageRatings, { merge: true })
+
+    })
+
+  }
+
+  submitReview(){
+    if (this.state.review) {
+      let date = new Date()
+      console.log('this.state.review', this.state.review, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
+      db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
+      .doc()
+      .set({review: this.state.review,
+            date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
     }
   }
 
-  componentDidMount(){
-    db.collection('ratings').doc(this.props.navigation.state.params.id).get()
-    .then(doc => {
-      let data = doc.data()
-      if (data){
-        this.setState({numberOfRatings: data.numberOfRatings,
-          averageOverallRating: data.averageOverallRating,
-          averageSeatingRating: data.averageSeatingRating,
-          averageOutletRating: data.averageOutletRating,
-          averageRestroomRating: data.averageRestroomRating})
+
+  handleSubmit(){
+
+    this.submitRating(this.state)
+    this.submitReview()
+
+    Alert.alert(
+      'Thank You',
+      'We appreciate that you were able to submit a review',
+      [
+        {text: 'Ok', onPress: () => {
+          console.log('this.props.navigation.state.params', this.props.navigation.state.params)
+          //this.props.navigation.state.params.navigateBack(!this.props.navigation.state.params.refresh)
+          this.props.navigation.navigate('Map')
+
+        }
       }
-    })
+      ],
+      { cancelable: false }
+    )
+
   }
 
   render() {
+
+    console.log('refresh?', this.props.navigation)
+
     return (
       <Container>
         <Content padder>
           <H2>{this.props.navigation.state.params.name}</H2>
-          <FormLabel>Overall Rating: {this.state.userOverallRating}</FormLabel>
+          <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
           <Slider
-            value={this.state.userOverallRating}
+            value={this.state.overallRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(userOverallRating) => this.setState({userOverallRating})}
+            onValueChange={(overallRating) => this.setState({overallRating})}
             style={styles.formItems} />
-          <FormLabel>Access to Chairs: {this.state.userSeatingRating}</FormLabel>
+          <FormLabel>Access to Chairs: {this.state.seatingRating}</FormLabel>
           <Slider
-            value={this.state.userSeatingRating}
+            value={this.state.seatingRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(userSeatingRating) => this.setState({userSeatingRating})}
+            onValueChange={(seatingRating) => this.setState({seatingRating})}
             style={styles.formItems} />
-          <FormLabel>Access to Outlets: {this.state.userOutletRating}</FormLabel>
+          <FormLabel>Access to Outlets: {this.state.outletRating}</FormLabel>
           <Slider
-            value={this.state.userOutletRating}
+            value={this.state.outletRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(userOutletRating) => this.setState({userOutletRating})}
+            onValueChange={(outletRating) => this.setState({outletRating})}
             style={styles.formItems} />
-          <FormLabel>Restrooms: {this.state.userRestroomRating}</FormLabel>
+          <FormLabel>Restrooms: {this.state.restroomRating}</FormLabel>
           <Slider
-            value={this.state.userRestroomRating}
+            value={this.state.restroomRating}
             animateTransitions = {true}
             maximumValue = {5}
             step = {0.5}
-            onValueChange={(userRestroomRating) => this.setState({userRestroomRating})}
+            onValueChange={(restroomRating) => this.setState({restroomRating})}
             style={styles.formItems} />
           <FormLabel>Study Space Review:</FormLabel>
           <TextInput
+            style={styles.textBoxInput}
+            value = {this.state.review}
             multiline={true}
-            numberOfLines = {4}
-            value = {this.state.userReview}
-            onChangeText = {(userReview) => this.setState({userReview})}
-            style={styles.formItems}
+            numberOfLines = {8}
+            onChangeText = {(review) => this.setState({review})}      
           />
-          <Button title="Add Rating" onPress={() => {
-            let newAverageRatings = calculateNewAverageRatings(this.state)
-            db.collection('ratings').doc(this.props.navigation.state.params.id)
-            .set({
-              averageOverallRating: newAverageRatings.averageOverallRating.toFixed(1),
-              averageSeatingRating: newAverageRatings.averageSeatingRating.toFixed(1),
-              averageOutletRating: newAverageRatings.averageOutletRating.toFixed(1),
-              averageRestroomRating: newAverageRatings.averageRestroomRating.toFixed(1),
-              numberOfRatings: newAverageRatings.numberOfRatings,
-              latitude: this.props.navigation.state.params.latitude,
-              longitude: this.props.navigation.state.params.longitude,
-              id: this.props.navigation.state.params.id
-            })
-
-            if (this.state.userReview) {
-              let date = new Date()
-              console.log('this.state.userReview', this.state.userReview, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
-              db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
-              .doc()
-              .set({userReview: this.state.userReview,
-                    date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
-            }
-
-          }} />
+          <Button
+            title="Add Rating"
+            style={styles.addRatingButton}
+            onPress={() => this.handleSubmit()} />
         </Content>
       </Container>
     )
