@@ -3,7 +3,7 @@ import React from 'react'
 import { Text, View, Button, StyleSheet } from 'react-native'
 import { H3 } from 'native-base'
 import { googlePlacesKey } from '../secrets'
-import { db } from '../config/firebase'
+import { db } from '../firebase'
 
 const styles = StyleSheet.create({
   container: {
@@ -35,17 +35,17 @@ export default class Map extends React.Component {
   componentDidMount(){
     this.getLocalCafes()
     this.getCafeRatings()
-
   }
 
   getCafeRatings(){
 
     db.collection('ratings')
-      .where('longitude', '>', +this.state.region.longitude - 1)
-      .where('longitude', '<', +this.state.region.longitude + 1)
+      .where('longitude', '>=', +this.state.region.longitude - 1)
+      .where('longitude', '<=', +this.state.region.longitude + 1)
     .get()
     .then(snapshot => {
       // creates a shallow copy of cafeInfo
+      console.log('did it work')
       let newCafeInfoArr = this.state.cafeInfo.slice(0)
       console.log('cafe info', this.state.cafeInfo)
       console.log('idArr is', this.state.idArr)
@@ -142,18 +142,18 @@ export default class Map extends React.Component {
                         }
                       })
                     }} >
-                  <Callout>
-                    <View>
-                      <H3>{ele.name}</H3>
-                      <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
-                      <Text>Study Space Rating: {ele.averageOverallRating || 'N/A'}</Text>
-                      <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
-                      <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
-                      <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
-                      <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
-                      <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
-                    </View>
-                  </Callout>
+                    <Callout>
+                      <View>
+                        <H3>{ele.name}</H3>
+                        <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
+                        <Text>Study Space Rating: {ele.averageOverallRating || 'N/A'}</Text>
+                        <Text>Outlet Access: {ele.averageOutletRating || 'N/A'}</Text>
+                        <Text>Seating Access: {ele.averageSeatingRating || 'N/A'}</Text>
+                        <Text>Reastrooms: {ele.averageRestroomRating || 'N/A'}</Text>
+                        <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng})} />
+                        <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id })} />
+                      </View>
+                    </Callout>
                   </Marker>
                 )
               })

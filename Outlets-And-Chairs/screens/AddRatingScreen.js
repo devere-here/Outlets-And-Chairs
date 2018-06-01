@@ -2,12 +2,17 @@ import React from 'react'
 import { StyleSheet, TextInput, Alert } from 'react-native'
 import { H2, Container, Content } from 'native-base'
 import { FormLabel, Slider, Button } from 'react-native-elements'
-import { db } from '../config/firebase'
+import { db } from '../firebase'
 
 const styles = StyleSheet.create({
   formItems: {
     marginLeft: 20,
     marginRight: 20
+  },
+  textBoxInput: {
+    marginLeft: 20,
+    marginRight: 20,
+    height: 150
   },
 })
 
@@ -32,17 +37,70 @@ export default class AddRating extends React.Component {
   constructor(props){
     super(props)
     this.state = {
+     
       userOverallRating: 0,
       userSeatingRating: 0,
       userOutletRating: 0,
       userRestroomRating: 0,
-      userReview: '',
       numberOfRatings: 0,
+      //what the user alters
+      userReview: '',
       averageOverallRating: 0,
       averageSeatingRating: 0,
       averageOutletRating: 0,
       averageRestroomRating: 0
     }
+
+    this.handleSubmit = this.handleSubmit.bind(this)
+    this.submitRating = this.submitRating.bind(this)
+    this.submitReview = this.submitReview.bind(this)
+
+  }
+
+  submitRating(){
+    let newAverageRatings = calculateNewAverageRatings(this.state)
+    db.collection('ratings').doc(this.props.navigation.state.params.id)
+    .set({
+      averageOverallRating: newAverageRatings.averageOverallRating.toFixed(1),
+      averageSeatingRating: newAverageRatings.averageSeatingRating.toFixed(1),
+      averageOutletRating: newAverageRatings.averageOutletRating.toFixed(1),
+      averageRestroomRating: newAverageRatings.averageRestroomRating.toFixed(1),
+      numberOfRatings: newAverageRatings.numberOfRatings,
+      latitude: this.props.navigation.state.params.latitude,
+      longitude: this.props.navigation.state.params.longitude,
+      id: this.props.navigation.state.params.id
+    })
+
+  }
+
+  submitReview(){
+    if (this.state.userReview) {
+      let date = new Date()
+      console.log('this.state.userReview', this.state.userReview, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
+      db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
+      .doc()
+      .set({userReview: this.state.userReview,
+            date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
+    }
+  }
+
+
+  handleSubmit(){
+
+    const { navigate } = this.props.navigation
+
+    this.submitRating()
+    this.submitReview()
+
+    Alert.alert(
+      'Thank You',
+      'We appreciate that you were able to submit a review',
+      [
+        {text: 'Ok', onPress: () => navigate('Map')}
+      ],
+      { cancelable: false }
+    )
+
   }
 
   componentDidMount(){
@@ -60,7 +118,7 @@ export default class AddRating extends React.Component {
   }
 
   render() {
-    const { navigate } = this.props.navigation
+
     return (
       <Container>
         <Content padder>
@@ -99,46 +157,16 @@ export default class AddRating extends React.Component {
             style={styles.formItems} />
           <FormLabel>Study Space Review:</FormLabel>
           <TextInput
-            multiline={true}
-            numberOfLines = {4}
+            style={styles.textBoxInput}
             value = {this.state.userReview}
-            onChangeText = {(userReview) => this.setState({userReview})}
-            style={styles.formItems}
+            multiline={true}
+            numberOfLines = {8}
+            onChangeText = {(userReview) => this.setState({userReview})}      
           />
           <Button
-            title="Add Rating" onPress={() => {
-              let newAverageRatings = calculateNewAverageRatings(this.state)
-              db.collection('ratings').doc(this.props.navigation.state.params.id)
-              .set({
-                averageOverallRating: newAverageRatings.averageOverallRating.toFixed(1),
-                averageSeatingRating: newAverageRatings.averageSeatingRating.toFixed(1),
-                averageOutletRating: newAverageRatings.averageOutletRating.toFixed(1),
-                averageRestroomRating: newAverageRatings.averageRestroomRating.toFixed(1),
-                numberOfRatings: newAverageRatings.numberOfRatings,
-                latitude: this.props.navigation.state.params.latitude,
-                longitude: this.props.navigation.state.params.longitude,
-                id: this.props.navigation.state.params.id
-              })
-
-              if (this.state.userReview) {
-                let date = new Date()
-                console.log('this.state.userReview', this.state.userReview, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
-                db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
-                .doc()
-                .set({userReview: this.state.userReview,
-                      date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
-              }
-
-              Alert.alert(
-                'Thank You',
-                'We appreciate that you were able to submit a review',
-                [
-                  {text: 'Ok', onPress: () => navigate('Map')}
-                ],
-                { cancelable: false }
-              )
-
-          }} />
+            title="Add Rating"
+            style={styles.addRatingButton}
+            onPress={() => this.handleSubmit()} />
         </Content>
       </Container>
     )

@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import TabNav from './config/TabNavigator'
+import TabNav from './navigation/TabNavigator'
 
 const styles = StyleSheet.create({
   container: {
