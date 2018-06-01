@@ -21,7 +21,6 @@ export default class AddRating extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-
       overallRating: 0,
       seatingRating: 0,
       outletRating: 0,
@@ -92,7 +91,13 @@ export default class AddRating extends React.Component {
       'Thank You',
       'We appreciate that you were able to submit a review',
       [
-        {text: 'Ok', onPress: () => this.props.navigation.navigate('Map')}
+        {text: 'Ok', onPress: () => {
+          console.log('this.props.navigation.state.params', this.props.navigation.state.params)
+          //this.props.navigation.state.params.navigateBack(!this.props.navigation.state.params.refresh)
+          this.props.navigation.navigate('Map')
+
+        }
+      }
       ],
       { cancelable: false }
     )
@@ -100,6 +105,8 @@ export default class AddRating extends React.Component {
   }
 
   render() {
+
+    console.log('refresh?', this.props.navigation)
 
     return (
       <Container>
