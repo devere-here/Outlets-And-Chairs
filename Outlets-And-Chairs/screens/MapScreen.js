@@ -110,6 +110,7 @@ export default class Map extends React.Component {
   }
 
   render() {
+    console.log('in the mapScreen render')
     const { navigate } = this.props.navigation
     return (
 

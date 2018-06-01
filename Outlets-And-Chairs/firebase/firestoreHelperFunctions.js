@@ -2,7 +2,7 @@ import { db } from './index'
 
 // adjust overall ratings
 
-export const adjustOverallRatings = (id, newRating) => {
+export const adjustOverallRatings = (newRating, id, longitude) => {
 
     let cafeRef = db.collection('ratings').doc(this.props.navigation.state.params.id),
     newAverageRatings = {}
@@ -29,7 +29,8 @@ export const adjustOverallRatings = (id, newRating) => {
       } else {
         newAverageRatings = newRating
         newAverageRatings.numberOfRatings = 1
-
+        newAverageRatings.id = id
+        newAverageRatings.longitude = longitude
       }
 
       cafeRef.set(newAverageRatings)
