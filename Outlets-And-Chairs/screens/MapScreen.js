@@ -12,7 +12,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF'
   }
-
 })
 
 export default class Map extends React.Component {
@@ -33,45 +32,44 @@ export default class Map extends React.Component {
     this.getCafeRatings = this.getCafeRatings.bind(this)
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.getLocalCafes()
-    this.getCafeRatings()
+    // this.getCafeRatings()
   }
 
-  getCafeRatings(){
-
+  getCafeRatings() {
     db.collection('ratings')
       .where('longitude', '>=', +this.state.region.longitude - 1)
       .where('longitude', '<=', +this.state.region.longitude + 1)
-    .get()
-    .then(snapshot => {
-      // creates a shallow copy of cafeInfo
-      let newCafeInfoArr = this.state.cafeInfo.slice(0)
-   
-      snapshot.forEach(doc => {
-        // checks to see if snapshot id is in idxArr
-        // since I added data to idxArr and cafeInfo at the same time
-        // if the id is in idxArr then that cafe's data is in cafeInfo
-        let idx = this.state.idArr.indexOf(doc.data().id)
-        if (idx !== -1){
-          let combinedObj = Object.assign(doc.data(), newCafeInfoArr[idx])
-          newCafeInfoArr[idx] = combinedObj
-        }
+      .get()
+      .then(snapshot => {
+        // creates a shallow copy of cafeInfo
+        let newCafeInfoArr = this.state.cafeInfo.slice(0)
+
+        snapshot.forEach(doc => {
+          // checks to see if snapshot id is in idxArr
+          // since I added data to idxArr and cafeInfo at the same time
+          // if the id is in idxArr then that cafe's data is in cafeInfo
+          let idx = this.state.idArr.indexOf(doc.data().id)
+          if (idx !== -1) {
+            let combinedObj = Object.assign(doc.data(), newCafeInfoArr[idx])
+            newCafeInfoArr[idx] = combinedObj
+          }
+
+        })
+        // after altering our shallow copy of cafeInfo we set that copy to be our new cafeInfo
+        this.setState({ cafeInfo: newCafeInfoArr })
 
       })
-      // after altering our shallow copy of cafeInfo we set that copy to be our new cafeInfo
-      this.setState({cafeInfo: newCafeInfoArr})
-
-    })
 
   }
 
   getLocalCafes() {
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude,
-          longitude = position.coords.longitude,
-          cafeInfo = [],
-          idArr = []
+        longitude = position.coords.longitude,
+        cafeInfo = [],
+        idArr = []
 
       const newRegion = {
         latitude: latitude,
@@ -86,15 +84,15 @@ export default class Map extends React.Component {
         .then(res => {
           res.results.forEach(ele => {
 
-            if (ele.opening_hours){
-              cafeInfo.push({name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng})
+            if (ele.opening_hours) {
+              cafeInfo.push({ name: ele.name, id: ele.place_id, isOpen: ele.opening_hours, lat: ele.geometry.location.lat, lng: ele.geometry.location.lng })
               idArr.push(ele.place_id)
             } else {
               console.log('you just lost a cafe make sure you dont lose too many')
             }
 
           })
-          this.setState({ region: newRegion, cafeInfo, idArr})
+          this.setState({ region: newRegion, cafeInfo, idArr })
 
         })
         .then(err => {
@@ -111,33 +109,38 @@ export default class Map extends React.Component {
       <View style={styles.container} >
         <MapView
           region={this.state.region}
-          showsUserLocation = {true}
+          showsUserLocation={true}
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         >
-        {
-          this.state.cafeInfo.length === 0
-            ? null
-            : this.state.cafeInfo.map((ele) => {
-              
+          {
+            this.state.cafeInfo.length === 0
+              ? null
+              : this.state.cafeInfo.map((ele) => {
                 return (
                   <Marker
                     key={ele.id}
                     pinColor={ele.isOpen.open_now ? 'green' : 'red'}
                     coordinate={{ latitude: ele.lat, longitude: ele.lng }}
-                    onPress={() => {this.handleMarkerPress(ele)}} >
+                  >
                     <Callout>
                       <View>
                         <H3>{ele.name}</H3>
                         <Text>{ele.isOpen.open_now ? 'Open' : 'Closed'}</Text>
-                        <Button title="Add Rating" onPress={() => navigate('AddRating', { id: ele.id, name: ele.name, latitude: ele.lat, longitude: ele.lng, navigateBack: this.onNavigateBack, refresh: this.state.refresh})} />
-                        <Button title="See Rating" onPress={() => navigate('CafeRating', { id: ele.id, name: ele.name })} />
-                        <Button title="See Reviews" onPress={() => navigate('CafeReviews', { id: ele.id, name: ele.name })} />
+                        <Button
+                          title="Add Rating"
+                          onPress={() => navigate('AddRating', { id: ele.id, name: ele.name})} />
+                        <Button
+                          title="See Rating"
+                          onPress={() => navigate('CafeRating', { id: ele.id, name: ele.name })} />
+                        <Button
+                          title="See Reviews"
+                          onPress={() => navigate('CafeReviews', { id: ele.id, name: ele.name })} />
                       </View>
                     </Callout>
                   </Marker>
                 )
               })
-        }
+          }
         </MapView>
       </View>
     )

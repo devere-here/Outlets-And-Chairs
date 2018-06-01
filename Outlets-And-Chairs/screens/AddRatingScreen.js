@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 
 
 export default class AddRating extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props)
     this.state = {
       overallRating: 0,
@@ -34,70 +34,70 @@ export default class AddRating extends React.Component {
 
   }
 
-  submitRating(newRating){
+  submitRating(newRating) {
 
     let cafeRef = db.collection('ratings').doc(this.props.navigation.state.params.id),
-    newAverageRatings = {}
+      newAverageRatings = {}
 
     cafeRef.get()
-    .then(doc => {
+      .then(doc => {
 
-      let data = doc.data()
+        let data = doc.data()
 
-      if (data){
+        if (data) {
 
-        let keys = Object.keys(newRating)
+          let keys = Object.keys(newRating)
 
-        keys.forEach((field) => {
-            if (field !== 'review'){
+          keys.forEach((field) => {
+            if (field !== 'review') {
               newAverageRatings[field] = (data[field] * data.numberOfRatings + newRating[field]) / (data.numberOfRatings + 1)
               newAverageRatings[field] = newAverageRatings[field].toFixed(1)
             }
-        })
+          })
 
-        newAverageRatings.numberOfRatings = data.numberOfRatings + 1
+          newAverageRatings.numberOfRatings = data.numberOfRatings + 1
 
-      } else {
-        newAverageRatings = newRating
-        newAverageRatings.numberOfRatings = 1
-        newAverageRatings.id = this.props.navigation.state.params.id
-        newAverageRatings.longitude = this.props.navigation.state.params.longitude
-      }
+        } else {
+          newAverageRatings = newRating
+          newAverageRatings.numberOfRatings = 1
+          newAverageRatings.id = this.props.navigation.state.params.id
+        }
 
-      cafeRef.set(newAverageRatings, { merge: true })
+        cafeRef.set(newAverageRatings, { merge: true })
 
-    })
+      })
 
   }
 
-  submitReview(){
+  submitReview() {
     if (this.state.review) {
       let date = new Date()
-      console.log('this.state.review', this.state.review, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
       db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
-      .doc()
-      .set({review: this.state.review,
-            date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
+        .doc()
+        .set({
+          review: this.state.review,
+          date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+        })
     }
   }
 
 
-  handleSubmit(){
+  handleSubmit() {
+
+    const { navigate } = this.props.navigation
 
     this.submitRating(this.state)
     this.submitReview()
 
     Alert.alert(
-      'Thank You',
-      'We appreciate that you were able to submit a review',
+      'Success',
+      'Thank you for your review!',
       [
-        {text: 'Ok', onPress: () => {
-          console.log('this.props.navigation.state.params', this.props.navigation.state.params)
-          //this.props.navigation.state.params.navigateBack(!this.props.navigation.state.params.refresh)
-          this.props.navigation.navigate('Map')
-
+        {
+          text: 'Ok', onPress: () => {
+            navigate('Map')
+          }
         }
-      }
       ],
       { cancelable: false }
     )
@@ -105,9 +105,6 @@ export default class AddRating extends React.Component {
   }
 
   render() {
-
-    console.log('refresh?', this.props.navigation)
-
     return (
       <Container>
         <Content padder>
@@ -115,42 +112,42 @@ export default class AddRating extends React.Component {
           <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
           <Slider
             value={this.state.overallRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(overallRating) => this.setState({overallRating})}
+            animateTransitions={true}
+            maximumValue={5}
+            step={0.5}
+            onValueChange={(overallRating) => this.setState({ overallRating })}
             style={styles.formItems} />
           <FormLabel>Access to Chairs: {this.state.seatingRating}</FormLabel>
           <Slider
             value={this.state.seatingRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(seatingRating) => this.setState({seatingRating})}
+            animateTransitions={true}
+            maximumValue={5}
+            step={0.5}
+            onValueChange={(seatingRating) => this.setState({ seatingRating })}
             style={styles.formItems} />
           <FormLabel>Access to Outlets: {this.state.outletRating}</FormLabel>
           <Slider
             value={this.state.outletRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(outletRating) => this.setState({outletRating})}
+            animateTransitions={true}
+            maximumValue={5}
+            step={0.5}
+            onValueChange={(outletRating) => this.setState({ outletRating })}
             style={styles.formItems} />
           <FormLabel>Restrooms: {this.state.restroomRating}</FormLabel>
           <Slider
             value={this.state.restroomRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(restroomRating) => this.setState({restroomRating})}
+            animateTransitions={true}
+            maximumValue={5}
+            step={0.5}
+            onValueChange={(restroomRating) => this.setState({ restroomRating })}
             style={styles.formItems} />
           <FormLabel>Study Space Review:</FormLabel>
           <TextInput
             style={styles.textBoxInput}
-            value = {this.state.review}
+            value={this.state.review}
             multiline={true}
-            numberOfLines = {8}
-            onChangeText = {(review) => this.setState({review})}      
+            numberOfLines={8}
+            onChangeText={(review) => this.setState({ review })}
           />
           <Button
             title="Add Rating"

@@ -21,42 +21,42 @@ const styles = StyleSheet.create({
 })
 
 export default class CafeReviews extends React.Component {
-    constructor(props){
+    constructor(props) {
         super(props)
         this.state = {
             reviews: []
         }
     }
 
-    componentDidMount(){
-        let reviews = []
-        db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
-        .get()
-        .then(snapshot => {
-            snapshot.forEach(doc => {
-                reviews.push(doc.data())
+    componentDidMount() {
+        let reviews = [],
+            { id } = this.props.navigation.state.params
+        db.collection('reviews').doc(id).collection('reviews')
+            .get()
+            .then(snapshot => {
+                snapshot.forEach(doc => {
+                    reviews.push(doc.data())
+                })
+                this.setState({ reviews })
             })
-            this.setState({reviews})
-        })
     }
 
-    render(){
+    render() {
         return (
             <View style={styles.container}>
                 <H2>{this.props.navigation.state.params.name} Reviews</H2>
                 {
                     this.state.reviews.length === 0
-                    ? <Text>There are currently no reviews for this cafe</Text>
-                    : (
-                        this.state.reviews.map(ele => {
-                            return (
+                        ? <Text>There are currently no reviews for this cafe</Text>
+                        :
+                        (
+                            this.state.reviews.map(ele => (
                                 <View key={uuid.create(4)} style={styles.reviewContainer}>
                                     <Text>{ele.date}</Text>
-                                    <Text>{ele.userReview}</Text>
+                                    <Text>{ele.review}</Text>
                                 </View>
-                            )
-                        })
-                    )
+                            ))
+                        )
                 }
             </View>
         )
