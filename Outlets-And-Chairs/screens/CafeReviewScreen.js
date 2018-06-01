@@ -43,7 +43,7 @@ export default class CafeReviews extends React.Component {
     render(){
         return (
             <View style={styles.container}>
-                <H2>Cafe Reviews</H2>
+                <H2>{this.props.navigation.state.params.name} Reviews</H2>
                 {
                     this.state.reviews.length === 0
                     ? <Text>There are currently no reviews for this cafe</Text>
