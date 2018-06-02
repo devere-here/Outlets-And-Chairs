@@ -11,10 +11,7 @@ const MarkerCallout = ({ cafe, navigate }) => (
             onPress={() => navigate('AddRating', { id: cafe.id, name: cafe.name})} />
         <Button
             title="See Rating"
-            onPress={() => navigate('CafeRating', { id: cafe.id, name: cafe.name })} />
-        <Button
-            title="See Reviews"
-            onPress={() => navigate('CafeReviews', { id: cafe.id, name: cafe.name })} />
+            onPress={() => navigate('RatingAndReviews', { id: cafe.id, name: cafe.name })} />
     </View>
 )
 

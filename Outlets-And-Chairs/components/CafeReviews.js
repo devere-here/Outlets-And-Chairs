@@ -1,13 +1,13 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { H2 } from 'native-base'
 import { db } from '../firebase'
 import uuid from 'uuid-js'
 
 const styles = StyleSheet.create({
     container: {
         marginLeft: 20,
-        marginRight: 20
+        marginRight: 20,
+        marginTop: 30
     },
     reviewContainer: {
         backgroundColor: 'white',
@@ -25,10 +25,10 @@ export default class CafeReviews extends React.Component {
         reviews: []
     }
 
+
     componentDidMount() {
-        let reviews = [],
-            { id } = this.props.navigation.state.params
-        db.collection('reviews').doc(id).collection('reviews')
+        let reviews = []
+        db.collection('reviews').doc(this.props.id).collection('reviews')
             .get()
             .then(snapshot => {
                 snapshot.forEach(doc => {
@@ -41,7 +41,6 @@ export default class CafeReviews extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <H2>{this.props.navigation.state.params.name} Reviews</H2>
                 {
                     this.state.reviews.length === 0
                         ? <Text>There are currently no reviews for this cafe</Text>

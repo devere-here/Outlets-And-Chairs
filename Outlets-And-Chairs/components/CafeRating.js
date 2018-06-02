@@ -6,7 +6,7 @@ import { db } from '../firebase'
 
 const styles = StyleSheet.create({
     heading: {
-        marginLeft: 15,
+        marginLeft: 20,
         marginTop: 15
     },
     ratingContainer: {
@@ -36,7 +36,7 @@ export default class CafeRating extends React.Component {
     }
 
     componentDidMount(){
-        db.collection('ratings').doc(this.props.navigation.state.params.id).get()
+        db.collection('ratings').doc(this.props.id).get()
         .then(doc => {
             let data = doc.data()
             if (data){
@@ -47,7 +47,6 @@ export default class CafeRating extends React.Component {
 
     render(){
         const keys = Object.keys(this.state),
-            { name } = this.props.navigation.state.params,
             labels = {
                 overallRating: 'Overall Rating',
                 seatingRating: 'Access to Seating Rating',
@@ -56,7 +55,7 @@ export default class CafeRating extends React.Component {
             }
         return (
             <View>
-                <H1 style={styles.heading}>{name}</H1>
+                <H1 style={styles.heading}>{this.props.name}</H1>
                 {!this.state.overallRating
                 ? <Text style={styles.heading} >There are currently ratings for this cafe</Text>
                 : (
