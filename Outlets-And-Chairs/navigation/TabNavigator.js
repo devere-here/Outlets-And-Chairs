@@ -11,14 +11,14 @@ const TabNav = createBottomTabNavigator({
         screen: HomeScreen,
         navigationOptions: {
             tabBarLabel: 'Home',
-            tabBarIcon: () => <Icon name="list" size={35} color="red" />
+            tabBarIcon: () => <Icon name="list" size={35} color="blue" />
         },
     },
     MapScreen: {
         screen: StackNav,
         navigationOptions: {
             tabBarLabel: 'Map Screen',
-            tabBarIcon: () => <Icon name="map" size={35} color="teal" />
+            tabBarIcon: () => <Icon name="map" size={35} color="blue" />
         },
     }
 })

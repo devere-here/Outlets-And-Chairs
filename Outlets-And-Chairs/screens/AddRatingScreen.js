@@ -1,6 +1,6 @@
 import React from 'react'
-import { StyleSheet, TextInput, Alert } from 'react-native'
-import { H2, Container, Content } from 'native-base'
+import { View, StyleSheet, TextInput, Alert } from 'react-native'
+import { H2 } from 'native-base'
 import { FormLabel, Slider, Button } from 'react-native-elements'
 import { db } from '../firebase'
 
@@ -27,52 +27,57 @@ export default class AddRating extends React.Component {
       restroomRating: 0,
       review: ''
     }
-
-    this.handleSubmit = this.handleSubmit.bind(this)
-    this.submitRating = this.submitRating.bind(this)
-    this.submitReview = this.submitReview.bind(this)
-
   }
 
-  submitRating(newRating) {
+  submitRating = (newRating) => {
 
-    let cafeRef = db.collection('ratings').doc(this.props.navigation.state.params.id),
-      newAverageRatings = {}
+    let updatedRating
+    const { id } = this.props.navigation.state.params,
+      cafeRef = db.collection('ratings').doc(id)
 
     cafeRef.get()
       .then(doc => {
-
-        let data = doc.data()
-
-        if (data) {
-
-          let keys = Object.keys(newRating)
-
-          keys.forEach((field) => {
-            if (field !== 'review') {
-              newAverageRatings[field] = (data[field] * data.numberOfRatings + newRating[field]) / (data.numberOfRatings + 1)
-              newAverageRatings[field] = newAverageRatings[field].toFixed(1)
-            }
-          })
-
-          newAverageRatings.numberOfRatings = data.numberOfRatings + 1
-
-        } else {
-          newAverageRatings = newRating
-          newAverageRatings.numberOfRatings = 1
-          newAverageRatings.id = this.props.navigation.state.params.id
-        }
-
-        cafeRef.set(newAverageRatings, { merge: true })
-
+        updatedRating = this.calculateAverageRating(doc.data(), newRating)
+        cafeRef.set(updatedRating, { merge: true })
       })
-
   }
 
-  submitReview() {
+  calculateAverageRating = (newRating, averageRating) => {
+
+    let updatedRating = {},
+      keys
+
+    if (averageRating) {
+
+      keys = Object.keys(newRating)
+
+      keys.forEach((field) => {
+        if (field !== 'review') {
+          updatedRating[field] = (averageRating[field] * averageRating.numberOfRatings + newRating[field]) / (averageRating.numberOfRatings + 1)
+          updatedRating[field] = updatedRating[field].toFixed(1)
+        }
+      })
+
+      updatedRating.numberOfRatings = averageRating.numberOfRatings + 1
+
+    } else {
+      updatedRating = newRating
+      updatedRating.numberOfRatings = 1
+      updatedRating.id = this.props.navigation.state.params.id
+    }
+
+    return updatedRating
+  }
+
+
+  submitReview = () => {
+
+    let date,
+      { id } = this.props.navigation.state.params
+
     if (this.state.review) {
-      let date = new Date()
-      db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
+      date = new Date()
+      db.collection('reviews').doc(id).collection('reviews')
         .doc()
         .set({
           review: this.state.review,
@@ -82,7 +87,7 @@ export default class AddRating extends React.Component {
   }
 
 
-  handleSubmit() {
+  handleSubmit = () => {
 
     const { navigate } = this.props.navigation
 
@@ -92,69 +97,65 @@ export default class AddRating extends React.Component {
     Alert.alert(
       'Success',
       'Thank you for your review!',
-      [
-        {
+      [{
           text: 'Ok', onPress: () => {
             navigate('Map')
           }
-        }
-      ],
+      }],
       { cancelable: false }
     )
-
   }
 
-  render() {
+
+  render = () => {
     return (
-      <Container>
-        <Content padder>
-          <H2>{this.props.navigation.state.params.name}</H2>
-          <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
-          <Slider
-            value={this.state.overallRating}
-            animateTransitions={true}
-            maximumValue={5}
-            step={0.5}
-            onValueChange={(overallRating) => this.setState({ overallRating })}
-            style={styles.formItems} />
-          <FormLabel>Access to Chairs: {this.state.seatingRating}</FormLabel>
-          <Slider
-            value={this.state.seatingRating}
-            animateTransitions={true}
-            maximumValue={5}
-            step={0.5}
-            onValueChange={(seatingRating) => this.setState({ seatingRating })}
-            style={styles.formItems} />
-          <FormLabel>Access to Outlets: {this.state.outletRating}</FormLabel>
-          <Slider
-            value={this.state.outletRating}
-            animateTransitions={true}
-            maximumValue={5}
-            step={0.5}
-            onValueChange={(outletRating) => this.setState({ outletRating })}
-            style={styles.formItems} />
-          <FormLabel>Restrooms: {this.state.restroomRating}</FormLabel>
-          <Slider
-            value={this.state.restroomRating}
-            animateTransitions={true}
-            maximumValue={5}
-            step={0.5}
-            onValueChange={(restroomRating) => this.setState({ restroomRating })}
-            style={styles.formItems} />
-          <FormLabel>Study Space Review:</FormLabel>
-          <TextInput
-            style={styles.textBoxInput}
-            value={this.state.review}
-            multiline={true}
-            numberOfLines={8}
-            onChangeText={(review) => this.setState({ review })}
-          />
-          <Button
-            title="Add Rating"
-            style={styles.addRatingButton}
-            onPress={() => this.handleSubmit()} />
-        </Content>
-      </Container>
+      <View>
+        <H2>{this.props.navigation.state.params.name}</H2>
+        <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
+        <Slider
+          value={this.state.overallRating}
+          animateTransitions={true}
+          maximumValue={5}
+          step={0.5}
+          onValueChange={(overallRating) => this.setState({ overallRating })}
+          style={styles.formItems} />
+        <FormLabel>Access to Chairs: {this.state.seatingRating}</FormLabel>
+        <Slider
+          value={this.state.seatingRating}
+          animateTransitions={true}
+          maximumValue={5}
+          step={0.5}
+          onValueChange={(seatingRating) => this.setState({ seatingRating })}
+          style={styles.formItems} />
+        <FormLabel>Access to Outlets: {this.state.outletRating}</FormLabel>
+        <Slider
+          value={this.state.outletRating}
+          animateTransitions={true}
+          maximumValue={5}
+          step={0.5}
+          onValueChange={(outletRating) => this.setState({ outletRating })}
+          style={styles.formItems} />
+        <FormLabel>Restrooms: {this.state.restroomRating}</FormLabel>
+        <Slider
+          value={this.state.restroomRating}
+          animateTransitions={true}
+          maximumValue={5}
+          step={0.5}
+          onValueChange={(restroomRating) => this.setState({ restroomRating })}
+          style={styles.formItems} />
+        <FormLabel>Study Space Review:</FormLabel>
+        <TextInput
+          style={styles.textBoxInput}
+          value={this.state.review}
+          multiline={true}
+          numberOfLines={8}
+          onChangeText={(review) => this.setState({ review })}
+        />
+        <Button
+          title="Add Rating"
+          style={styles.addRatingButton}
+          onPress={() => this.handleSubmit()} />
+      </View>
     )
   }
 }
