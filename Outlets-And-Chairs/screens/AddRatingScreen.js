@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, StyleSheet, TextInput, Alert } from 'react-native'
 import { H2 } from 'native-base'
-import { FormLabel, Slider, Button } from 'react-native-elements'
+import { FormLabel, Button } from 'react-native-elements'
 import { db } from '../firebase'
+import RatingSlider from '../components/RatingSlider'
 
 const styles = StyleSheet.create({
   formItems: {
@@ -18,18 +19,19 @@ const styles = StyleSheet.create({
 
 
 export default class AddRating extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      overallRating: 0,
-      seatingRating: 0,
-      outletRating: 0,
-      restroomRating: 0,
-      review: ''
-    }
+  state = {
+    overallRating: 0,
+    seatingRating: 0,
+    outletRating: 0,
+    restroomRating: 0,
+    review: ''
   }
 
-  submitRating = (newRating) => {
+  sliderAdjustState = (stateVarName, newValue) => {
+    this.setState({ [stateVarName]: newValue })
+  }
+
+  submitRating = () => {
 
     let updatedRating
     const { id } = this.props.navigation.state.params,
@@ -37,23 +39,24 @@ export default class AddRating extends React.Component {
 
     cafeRef.get()
       .then(doc => {
-        updatedRating = this.calculateAverageRating(doc.data(), newRating)
+        updatedRating = this.calculateAverageRating(doc.data())
         cafeRef.set(updatedRating, { merge: true })
       })
   }
 
-  calculateAverageRating = (newRating, averageRating) => {
+  calculateAverageRating = (averageRating) => {
+
 
     let updatedRating = {},
       keys
 
     if (averageRating) {
 
-      keys = Object.keys(newRating)
+      keys = Object.keys(this.state)
 
       keys.forEach((field) => {
         if (field !== 'review') {
-          updatedRating[field] = (averageRating[field] * averageRating.numberOfRatings + newRating[field]) / (averageRating.numberOfRatings + 1)
+          updatedRating[field] = (averageRating[field] * averageRating.numberOfRatings + this.state[field]) / (averageRating.numberOfRatings + 1)
           updatedRating[field] = updatedRating[field].toFixed(1)
         }
       })
@@ -61,7 +64,7 @@ export default class AddRating extends React.Component {
       updatedRating.numberOfRatings = averageRating.numberOfRatings + 1
 
     } else {
-      updatedRating = newRating
+      updatedRating = this.state
       updatedRating.numberOfRatings = 1
       updatedRating.id = this.props.navigation.state.params.id
     }
@@ -91,7 +94,7 @@ export default class AddRating extends React.Component {
 
     const { navigate } = this.props.navigation
 
-    this.submitRating(this.state)
+    this.submitRating()
     this.submitReview()
 
     Alert.alert(
@@ -108,41 +111,30 @@ export default class AddRating extends React.Component {
 
 
   render = () => {
+
+    const keys = Object.keys(this.state).filter(key => key !== 'review'),
+      { name } = this.props.navigation.state.params,
+      labels = {
+        overallRating: 'Overall Rating',
+        seatingRating: 'Access to Chairs',
+        outletRating: 'Access to Outlets',
+        restroomRating: 'Restrooms'
+      }
+
     return (
       <View>
-        <H2>{this.props.navigation.state.params.name}</H2>
-        <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
-        <Slider
-          value={this.state.overallRating}
-          animateTransitions={true}
-          maximumValue={5}
-          step={0.5}
-          onValueChange={(overallRating) => this.setState({ overallRating })}
-          style={styles.formItems} />
-        <FormLabel>Access to Chairs: {this.state.seatingRating}</FormLabel>
-        <Slider
-          value={this.state.seatingRating}
-          animateTransitions={true}
-          maximumValue={5}
-          step={0.5}
-          onValueChange={(seatingRating) => this.setState({ seatingRating })}
-          style={styles.formItems} />
-        <FormLabel>Access to Outlets: {this.state.outletRating}</FormLabel>
-        <Slider
-          value={this.state.outletRating}
-          animateTransitions={true}
-          maximumValue={5}
-          step={0.5}
-          onValueChange={(outletRating) => this.setState({ outletRating })}
-          style={styles.formItems} />
-        <FormLabel>Restrooms: {this.state.restroomRating}</FormLabel>
-        <Slider
-          value={this.state.restroomRating}
-          animateTransitions={true}
-          maximumValue={5}
-          step={0.5}
-          onValueChange={(restroomRating) => this.setState({ restroomRating })}
-          style={styles.formItems} />
+        <H2>{name}</H2>
+        {
+          keys.map(stateVarName => (
+            <RatingSlider
+              key={stateVarName}
+              label={labels[stateVarName]}
+              rating={this.state[stateVarName]}
+              stateVarName={stateVarName}
+              adjustState={this.sliderAdjustState}
+            />
+          ))
+        }
         <FormLabel>Study Space Review:</FormLabel>
         <TextInput
           style={styles.textBoxInput}
@@ -154,7 +146,8 @@ export default class AddRating extends React.Component {
         <Button
           title="Add Rating"
           style={styles.addRatingButton}
-          onPress={() => this.handleSubmit()} />
+          onPress={() => this.handleSubmit()}
+        />
       </View>
     )
   }

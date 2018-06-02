@@ -21,12 +21,10 @@ const styles = StyleSheet.create({
 })
 
 export default class CafeReviews extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            reviews: []
-        }
+    state = {
+        reviews: []
     }
+
 
     componentDidMount() {
         let reviews = [],
