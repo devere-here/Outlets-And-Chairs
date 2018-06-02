@@ -1,8 +1,9 @@
 import React from 'react'
-import { StyleSheet, TextInput, Alert } from 'react-native'
-import { H2, Container, Content } from 'native-base'
-import { FormLabel, Slider, Button } from 'react-native-elements'
+import { View, StyleSheet, TextInput, Alert } from 'react-native'
+import { H2 } from 'native-base'
+import { FormLabel, Button } from 'react-native-elements'
 import { db } from '../firebase'
+import RatingSlider from '../components/RatingSlider'
 
 const styles = StyleSheet.create({
   formItems: {
@@ -18,146 +19,136 @@ const styles = StyleSheet.create({
 
 
 export default class AddRating extends React.Component {
-  constructor(props){
-    super(props)
-    this.state = {
-      overallRating: 0,
-      seatingRating: 0,
-      outletRating: 0,
-      restroomRating: 0,
-      review: ''
-    }
-
-    this.handleSubmit = this.handleSubmit.bind(this)
-    this.submitRating = this.submitRating.bind(this)
-    this.submitReview = this.submitReview.bind(this)
-
+  state = {
+    overallRating: 0,
+    seatingRating: 0,
+    outletRating: 0,
+    restroomRating: 0,
+    review: ''
   }
 
-  submitRating(newRating){
+  sliderAdjustState = (stateVarName, newValue) => {
+    this.setState({ [stateVarName]: newValue })
+  }
 
-    let cafeRef = db.collection('ratings').doc(this.props.navigation.state.params.id),
-    newAverageRatings = {}
+  submitRating = () => {
+
+    let updatedRating
+    const { id } = this.props.navigation.state.params,
+      cafeRef = db.collection('ratings').doc(id)
 
     cafeRef.get()
-    .then(doc => {
-
-      let data = doc.data()
-
-      if (data){
-
-        let keys = Object.keys(newRating)
-
-        keys.forEach((field) => {
-            if (field !== 'review'){
-              newAverageRatings[field] = (data[field] * data.numberOfRatings + newRating[field]) / (data.numberOfRatings + 1)
-              newAverageRatings[field] = newAverageRatings[field].toFixed(1)
-            }
-        })
-
-        newAverageRatings.numberOfRatings = data.numberOfRatings + 1
-
-      } else {
-        newAverageRatings = newRating
-        newAverageRatings.numberOfRatings = 1
-        newAverageRatings.id = this.props.navigation.state.params.id
-        newAverageRatings.longitude = this.props.navigation.state.params.longitude
-      }
-
-      cafeRef.set(newAverageRatings, { merge: true })
-
-    })
-
+      .then(doc => {
+        updatedRating = this.calculateAverageRating(doc.data())
+        cafeRef.set(updatedRating, { merge: true })
+      })
   }
 
-  submitReview(){
+  calculateAverageRating = (averageRating) => {
+
+
+    let updatedRating = {},
+      keys
+
+    if (averageRating) {
+
+      keys = Object.keys(this.state)
+
+      keys.forEach((field) => {
+        if (field !== 'review') {
+          updatedRating[field] = (averageRating[field] * averageRating.numberOfRatings + this.state[field]) / (averageRating.numberOfRatings + 1)
+          updatedRating[field] = updatedRating[field].toFixed(1)
+        }
+      })
+
+      updatedRating.numberOfRatings = averageRating.numberOfRatings + 1
+
+    } else {
+      updatedRating = this.state
+      updatedRating.numberOfRatings = 1
+      updatedRating.id = this.props.navigation.state.params.id
+    }
+
+    return updatedRating
+  }
+
+
+  submitReview = () => {
+
+    let date,
+      { id } = this.props.navigation.state.params
+
     if (this.state.review) {
-      let date = new Date()
-      console.log('this.state.review', this.state.review, 'date', `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
-      db.collection('reviews').doc(this.props.navigation.state.params.id).collection('reviews')
-      .doc()
-      .set({review: this.state.review,
-            date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`})
+      date = new Date()
+      db.collection('reviews').doc(id).collection('reviews')
+        .doc()
+        .set({
+          review: this.state.review,
+          date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+        })
     }
   }
 
 
-  handleSubmit(){
+  handleSubmit = () => {
 
-    this.submitRating(this.state)
+    const { navigate } = this.props.navigation
+
+    this.submitRating()
     this.submitReview()
 
     Alert.alert(
-      'Thank You',
-      'We appreciate that you were able to submit a review',
-      [
-        {text: 'Ok', onPress: () => {
-          console.log('this.props.navigation.state.params', this.props.navigation.state.params)
-          //this.props.navigation.state.params.navigateBack(!this.props.navigation.state.params.refresh)
-          this.props.navigation.navigate('Map')
-
-        }
-      }
-      ],
+      'Success',
+      'Thank you for your review!',
+      [{
+          text: 'Ok', onPress: () => {
+            navigate('Map')
+          }
+      }],
       { cancelable: false }
     )
-
   }
 
-  render() {
 
-    console.log('refresh?', this.props.navigation)
+  render = () => {
+
+    const keys = Object.keys(this.state).filter(key => key !== 'review'),
+      { name } = this.props.navigation.state.params,
+      labels = {
+        overallRating: 'Overall Rating',
+        seatingRating: 'Access to Chairs',
+        outletRating: 'Access to Outlets',
+        restroomRating: 'Restrooms'
+      }
 
     return (
-      <Container>
-        <Content padder>
-          <H2>{this.props.navigation.state.params.name}</H2>
-          <FormLabel>Overall Rating: {this.state.overallRating}</FormLabel>
-          <Slider
-            value={this.state.overallRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(overallRating) => this.setState({overallRating})}
-            style={styles.formItems} />
-          <FormLabel>Access to Chairs: {this.state.seatingRating}</FormLabel>
-          <Slider
-            value={this.state.seatingRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(seatingRating) => this.setState({seatingRating})}
-            style={styles.formItems} />
-          <FormLabel>Access to Outlets: {this.state.outletRating}</FormLabel>
-          <Slider
-            value={this.state.outletRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(outletRating) => this.setState({outletRating})}
-            style={styles.formItems} />
-          <FormLabel>Restrooms: {this.state.restroomRating}</FormLabel>
-          <Slider
-            value={this.state.restroomRating}
-            animateTransitions = {true}
-            maximumValue = {5}
-            step = {0.5}
-            onValueChange={(restroomRating) => this.setState({restroomRating})}
-            style={styles.formItems} />
-          <FormLabel>Study Space Review:</FormLabel>
-          <TextInput
-            style={styles.textBoxInput}
-            value = {this.state.review}
-            multiline={true}
-            numberOfLines = {8}
-            onChangeText = {(review) => this.setState({review})}      
-          />
-          <Button
-            title="Add Rating"
-            style={styles.addRatingButton}
-            onPress={() => this.handleSubmit()} />
-        </Content>
-      </Container>
+      <View>
+        <H2>{name}</H2>
+        {
+          keys.map(stateVarName => (
+            <RatingSlider
+              key={stateVarName}
+              label={labels[stateVarName]}
+              rating={this.state[stateVarName]}
+              stateVarName={stateVarName}
+              adjustState={this.sliderAdjustState}
+            />
+          ))
+        }
+        <FormLabel>Study Space Review:</FormLabel>
+        <TextInput
+          style={styles.textBoxInput}
+          value={this.state.review}
+          multiline={true}
+          numberOfLines={8}
+          onChangeText={(review) => this.setState({ review })}
+        />
+        <Button
+          title="Add Rating"
+          style={styles.addRatingButton}
+          onPress={() => this.handleSubmit()}
+        />
+      </View>
     )
   }
 }
