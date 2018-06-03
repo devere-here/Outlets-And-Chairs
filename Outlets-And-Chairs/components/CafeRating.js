@@ -36,6 +36,7 @@ export default class CafeRating extends React.Component {
     }
 
     componentDidMount(){
+        console.log('the id is', this.props.id)
         db.collection('ratings').doc(this.props.id).get()
         .then(doc => {
             let data = doc.data()
@@ -46,13 +47,15 @@ export default class CafeRating extends React.Component {
     }
 
     render(){
-        const keys = Object.keys(this.state),
-            labels = {
+        const labels = {
                 overallRating: 'Overall Rating',
                 seatingRating: 'Access to Seating Rating',
                 outletRating: 'Access to Outlets Rating',
                 restroomRating: 'Restroom Rating',
-            }
+            },
+            keys = Object.keys(labels)
+
+            console.log('our state is', this.state)
         return (
             <View>
                 <H1 style={styles.heading}>{this.props.name}</H1>
@@ -61,8 +64,8 @@ export default class CafeRating extends React.Component {
                 : (
                     <View style={styles.ratingContainer}>
                     {
-                        keys.forEach(stateVarName => (
-                            <View>
+                        keys.map(stateVarName => (
+                            <View key={stateVarName}>
                                 <H2>{labels[stateVarName]}: {this.state[stateVarName]}</H2>
                                 <Rating
                                     type="star"

@@ -1,6 +1,6 @@
 import MapView, { Marker, Callout } from 'react-native-maps'
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import { googlePlacesKey } from '../secrets'
 import MarkerCallout from '../components/MarkerCallout'
 
@@ -17,6 +17,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0
+  },
+  button: {
+    backgroundColor: 'blue',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '40%',
+    borderRadius: 10,
+    marginTop: 10
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    position: 'relative',
+    left: '75%',
+    marginTop: 17
   }
 })
 
@@ -32,7 +47,11 @@ export default class Map extends React.Component {
   }
 
   componentDidMount = () => {
-    this.getLocalCafes()
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords
+      this.getLocalCafes(latitude, longitude)
+    })
   }
 
   processAPIData = (cafeData) => {
@@ -46,16 +65,15 @@ export default class Map extends React.Component {
     })
 
     return cafeInfo
-
   }
 
-  getLocalCafes = () => {
-    navigator.geolocation.getCurrentPosition((position) => {
+  updateRegion = (region) => this.setState({region})
+
+  getLocalCafes = (latitude, longitude) => {
 
       let cafeInfo
-      const { latitude, longitude } = position.coords,
-        url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1000&type=cafe&key=${googlePlacesKey}`,
-        newRegion = {
+      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1500&type=cafe&key=${googlePlacesKey}`,
+        region = {
           latitude: latitude,
           longitude: longitude,
           latitudeDelta: 0.025,
@@ -66,23 +84,25 @@ export default class Map extends React.Component {
         .then(res => res.json())
         .then(res => {
           cafeInfo = this.processAPIData(res.results)
-          this.setState({ region: newRegion, cafeInfo })
+          this.setState({ region, cafeInfo })
         })
         .then(err => {
           console.log('err is ', err)
         })
-
-    })
   }
 
   render = () => {
 
     const { navigate } = this.props.navigation
+
     return (
 
       <View style={styles.container} >
         <MapView
           region={this.state.region}
+          onRegionChangeComplete={(newRegion) => {
+            this.setState({region: newRegion})
+          }}
           showsUserLocation={true}
           style={styles.map}
         >
@@ -101,9 +121,17 @@ export default class Map extends React.Component {
                   </Marker>
               ))
           }
+          <TouchableOpacity
+            style={styles.button}
+            onPress = {() => {
+              const {latitude, longitude } = this.state.region
+              this.getLocalCafes(latitude, longitude)
+            }}
+          >
+            <Text style={styles.buttonText}>Search Here</Text>
+          </TouchableOpacity>
         </MapView>
       </View>
     )
   }
 }
-
