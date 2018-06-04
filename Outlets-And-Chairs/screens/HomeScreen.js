@@ -7,7 +7,6 @@ const styles = StyleSheet.create({
         marginTop: 30,
         marginRight: 'auto',
         marginLeft: 'auto',
-        color: 'blue',
     },
     image: {
         marginTop: 30,
