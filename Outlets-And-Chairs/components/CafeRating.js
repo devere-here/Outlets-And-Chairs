@@ -36,7 +36,6 @@ export default class CafeRating extends React.Component {
     }
 
     componentDidMount(){
-        console.log('the id is', this.props.id)
         db.collection('ratings').doc(this.props.id).get()
         .then(doc => {
             let data = doc.data()
@@ -55,12 +54,11 @@ export default class CafeRating extends React.Component {
             },
             keys = Object.keys(labels)
 
-            console.log('our state is', this.state)
         return (
             <View>
                 <H1 style={styles.heading}>{this.props.name}</H1>
                 {!this.state.overallRating
-                ? <Text style={styles.heading} >There are currently ratings for this cafe</Text>
+                ? <Text style={styles.heading} >There are currently no ratings for this cafe</Text>
                 : (
                     <View style={styles.ratingContainer}>
                     {
