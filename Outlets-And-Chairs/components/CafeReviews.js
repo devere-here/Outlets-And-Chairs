@@ -39,6 +39,7 @@ export default class CafeReviews extends React.Component {
     }
 
     render() {
+
         return (
             <View style={styles.container}>
                 {
