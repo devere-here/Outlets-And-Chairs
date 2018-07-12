@@ -1,39 +1,6 @@
-import MapView, { Marker, Callout } from 'react-native-maps'
 import React from 'react'
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import { googlePlacesKey } from '../secrets'
-import MarkerCallout from '../components/MarkerCallout'
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
-  },
-  map: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  },
-  button: {
-    backgroundColor: 'blue',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: '40%',
-    borderRadius: 10,
-    marginTop: 10
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    position: 'relative',
-    left: '75%',
-    marginTop: 17
-  }
-})
+import MapScreenUI from '../components/MapScreenUI'
 
 export default class Map extends React.Component {
   state = {
@@ -93,45 +60,17 @@ export default class Map extends React.Component {
 
   render = () => {
 
-    const { navigate } = this.props.navigation
+    const { navigate } = this.props.navigation,
+      { region, cafeInfo } = this.state
 
     return (
-
-      <View style={styles.container} >
-        <MapView
-          region={this.state.region}
-          onRegionChangeComplete={(newRegion) => {
-            this.setState({region: newRegion})
-          }}
-          showsUserLocation={true}
-          style={styles.map}
-        >
-          {
-            this.state.cafeInfo.length === 0
-              ? null
-              : this.state.cafeInfo.map((cafe) => (
-                  <Marker
-                    key={cafe.id}
-                    pinColor={cafe.isOpen.open_now ? 'green' : 'red'}
-                    coordinate={{ latitude: cafe.lat, longitude: cafe.lng }}
-                  >
-                    <Callout>
-                      <MarkerCallout cafe={cafe} navigate={navigate} />
-                    </Callout>
-                  </Marker>
-              ))
-          }
-          <TouchableOpacity
-            style={styles.button}
-            onPress = {() => {
-              const {latitude, longitude } = this.state.region
-              this.getLocalCafes(latitude, longitude)
-            }}
-          >
-            <Text style={styles.buttonText}>Search Here</Text>
-          </TouchableOpacity>
-        </MapView>
-      </View>
+      <MapScreenUI
+        region={region}
+        cafeInfo={cafeInfo}
+        updateRegion={this.updateRegion}
+        navigate={navigate}
+        getLocalCafes={this.getLocalCafes}
+      />
     )
   }
 }
