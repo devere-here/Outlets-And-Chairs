@@ -1,21 +1,7 @@
 import React from 'react'
-import { View, StyleSheet, TextInput, Alert } from 'react-native'
-import { H2 } from 'native-base'
-import { FormLabel, Button } from 'react-native-elements'
+import { Alert } from 'react-native'
 import { db } from '../firebase'
-import RatingSlider from '../components/RatingSlider'
-
-const styles = StyleSheet.create({
-  formItems: {
-    marginLeft: 20,
-    marginRight: 20
-  },
-  textBoxInput: {
-    marginLeft: 20,
-    marginRight: 20,
-    height: 150
-  },
-})
+import AddRatingAndReviewUI from '../components/AddRatingAndReviewUI'
 
 
 export default class AddRating extends React.Component {
@@ -45,7 +31,6 @@ export default class AddRating extends React.Component {
   }
 
   calculateAverageRating = (averageRating) => {
-
 
     let updatedRating = {},
       keys
@@ -109,6 +94,10 @@ export default class AddRating extends React.Component {
     )
   }
 
+  handlePress = () => this.handleSubmit()
+
+  handleTextChange = review => this.setState({ review })
+
 
   render = () => {
 
@@ -122,33 +111,15 @@ export default class AddRating extends React.Component {
       }
 
     return (
-      <View>
-        <H2>{name}</H2>
-        {
-          keys.map(stateVarName => (
-            <RatingSlider
-              key={stateVarName}
-              label={labels[stateVarName]}
-              rating={this.state[stateVarName]}
-              stateVarName={stateVarName}
-              adjustState={this.sliderAdjustState}
-            />
-          ))
-        }
-        <FormLabel>Study Space Review:</FormLabel>
-        <TextInput
-          style={styles.textBoxInput}
-          value={this.state.review}
-          multiline={true}
-          numberOfLines={8}
-          onChangeText={(review) => this.setState({ review })}
-        />
-        <Button
-          title="Add Rating"
-          style={styles.addRatingButton}
-          onPress={() => this.handleSubmit()}
-        />
-      </View>
+      <AddRatingAndReviewUI
+        keys={keys}
+        name={name}
+        labels={labels}
+        rating={this.state}
+        handleTextChange={this.handleTextChange}
+        handlePress={this.handlePress}
+        sliderAdjustState={this.sliderAdjustState}
+      />
     )
   }
 }
