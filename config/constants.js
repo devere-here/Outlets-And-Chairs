@@ -1,0 +1,6 @@
+export const FIREBASE_API_KEY = 'AIzaSyCzeICac4qDR4mZ9YMneOVFJIqeLqy0SL0'
+export const FIREBASE_AUTH_DOMAIN = 'chairs-and-outlets-52861.firebaseapp.com'
+export const FIREBASE_DATABASE_URL = 'https://chairs-and-outlets-52861.firebaseio.com'
+export const FIREBASE_PROJECT_ID = 'chairs-and-outlets-52861'
+export const FIREBASE_STORAGE_BUCKET = 'chairs-and-outlets-52861.appspot.com'
+export const FIREBASE_MESSAGING_SENDER_ID = '854894369940'
